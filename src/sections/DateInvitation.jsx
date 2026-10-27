@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useInView } from 'motion/react'
 import { CalendarHeart, Heart, RotateCcw } from 'lucide-react'
-import { config, fill, names } from '../data'
+import { config, fill, proposal } from '../data'
 import { Button } from '../components/Button'
 import { DatePreferencePanel } from '../components/DatePreferencePanel'
 import { FloatingHearts } from '../components/FloatingHearts'
@@ -11,7 +11,7 @@ import { SplitText } from '../components/SplitText'
 import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
 import { celebrate } from '../lib/confetti'
 import { describePlan } from '../lib/plan'
-import { EASE_SILK, cn } from '../lib/utils'
+import { EASE_SILK } from '../lib/utils'
 
 const stage = {
   hidden: { opacity: 0, y: 22 },
@@ -24,10 +24,10 @@ function Backdrop() {
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(180deg, rgb(255 249 243 / 0) 0%, #f6dce2 14%, #efc6d0 52%, #e9b9c5 84%, #f0cbd4 100%)' }}
+        style={{ background: 'linear-gradient(180deg, rgb(255 249 243 / 0) 0%, #f6dce2 12%, #efc6d0 52%, #e9b9c5 84%, #f0cbd4 100%)' }}
       />
       <div
-        className="glow-orb absolute left-1/2 top-[42%] h-[85vmin] w-[85vmin] -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="glow-orb absolute left-1/2 top-[40%] h-[85vmin] w-[85vmin] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{ background: 'radial-gradient(closest-side, rgb(255 249 243 / .85), rgb(243 230 213 / .35) 50%, transparent)' }}
       />
       <div
@@ -42,41 +42,84 @@ function Backdrop() {
   )
 }
 
-/** The question, revealed in paced stages: lead → tease → the question → message → choices. */
+/** The date, written out like a printed invitation card — plus venue, time and dress code. */
+function InvitationCard({ reveal }) {
+  const inv = config.invitation
+  const details = inv.details.map((d) => {
+    if (d.id === 'venue' && config.venueMode === 'revealed' && config.venue) return { ...d, value: config.venue }
+    if (d.id === 'time' && config.timeMode === 'set' && config.time) return { ...d, value: config.time }
+    return d
+  })
+
+  return (
+    <motion.div {...reveal} className="relative mx-auto mt-9 max-w-xl rounded-[18px] bg-paper/90 px-6 pb-7 pt-6 text-left shadow-soft sm:px-9 sm:pb-8">
+      <span aria-hidden className="pointer-events-none absolute inset-2 rounded-[12px] border border-rose-gold/30" />
+      <p className="relative text-center text-[10px] font-medium uppercase tracking-[0.32em] text-burgundy">{fill(inv.cardLabel)}</p>
+      <p className="relative mt-2 text-balance text-center font-display text-[clamp(1.6rem,4.2vw,2.3rem)] leading-tight text-ink">
+        {fill(proposal.upcoming ? inv.dateLine : inv.dateLineNoDate)}
+      </p>
+      <span aria-hidden className="relative mx-auto mt-4 block h-px w-16 bg-rose-gold/40" />
+      <dl className="relative mt-5 space-y-3.5">
+        {details.map((d) => (
+          <div key={d.id ?? d.label} className="grid gap-1 sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:gap-4">
+            <dt className="text-[10px] font-medium uppercase tracking-[0.26em] text-burgundy sm:pt-1.5">{fill(d.label)}</dt>
+            <dd className="text-pretty font-display text-lg leading-snug text-ink">{fill(d.value)}</dd>
+          </div>
+        ))}
+      </dl>
+    </motion.div>
+  )
+}
+
+/** The question, revealed in paced stages: lead → teases → the question → message → card → choices. */
 function TheQuestion({ play, reduce, planFirst, onYes, onPlanFirst, onPlan }) {
   const inv = config.invitation
-  const t = reduce ? [0, 0.15, 0.3, 0.45, 0.6] : [0.15, 1.35, 2.55, 3.55, 4.15]
-  const reveal = (i) => ({ variants: stage, initial: 'hidden', animate: play ? 'show' : 'hidden', custom: t[i] })
+  const teases = (inv.teases ?? []).filter(Boolean)
+  const planMessages = (inv.planFirstMessages ?? []).filter(Boolean)
+
+  // timeline (seconds after the section comes into view)
+  const step = reduce ? 0.12 : 1.1
+  const leadAt = reduce ? 0 : 0.15
+  const teaseAt = teases.map((_, i) => leadAt + step * (i + 1))
+  const questionAt = leadAt + step * (teases.length + 1)
+  const messageAt = questionAt + (reduce ? 0.12 : 1.0)
+  const cardAt = messageAt + (reduce ? 0.12 : 0.5)
+  const buttonsAt = cardAt + (reduce ? 0.12 : 0.6)
+  const reveal = (delay) => ({ variants: stage, initial: 'hidden', animate: play ? 'show' : 'hidden', custom: delay })
 
   return (
     <motion.div layout="position" exit={{ opacity: 0, scale: 1.05, filter: 'blur(6px)', transition: { duration: 0.45 } }}>
-      <motion.p {...reveal(0)} className="font-display text-[clamp(1.4rem,3.4vw,2rem)] font-light italic text-ink">
+      <motion.p {...reveal(leadAt)} className="font-display text-[clamp(1.35rem,3.2vw,1.9rem)] font-light italic text-ink">
         {fill(inv.lead)}
       </motion.p>
-      <motion.p {...reveal(1)} className="mt-2 font-hand text-[clamp(1.75rem,4.4vw,2.4rem)] text-burgundy">
-        {fill(inv.tease)}
-      </motion.p>
-
-      {names.her && (
-        <motion.p {...reveal(2)} className="mt-10 font-hand text-[clamp(1.8rem,4vw,2.3rem)] leading-none text-rose-gold-deep sm:mt-12">
-          {names.her},
+      {teases.map((line, i) => (
+        <motion.p
+          key={i}
+          {...reveal(teaseAt[i])}
+          className={
+            i === teases.length - 1
+              ? 'mt-1 font-hand text-[clamp(1.75rem,4.4vw,2.4rem)] text-burgundy'
+              : 'mt-3 font-display text-[clamp(1.2rem,2.8vw,1.6rem)] italic text-ink-soft'
+          }
+        >
+          {fill(line)}
         </motion.p>
-      )}
+      ))}
+
       <h2
         id="invitation-title"
-        className={cn(
-          'font-display text-[clamp(2.75rem,8.4vw,6.25rem)] font-light leading-[1.02] text-burgundy',
-          names.her ? 'mt-2' : 'mt-10 sm:mt-12',
-        )}
+        className="mt-9 text-balance font-display text-[clamp(2.4rem,6.4vw,4.75rem)] font-light leading-[1.06] text-burgundy sm:mt-11"
       >
-        <SplitText text={fill(inv.question)} by="words" play={play} delay={t[2] + 0.15} stagger={0.09} />
+        <SplitText text={fill(proposal.upcoming ? inv.question : inv.questionNoDate)} by="words" play={play} delay={questionAt} stagger={0.08} />
       </h2>
 
-      <motion.p {...reveal(3)} className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink">
+      <motion.p {...reveal(messageAt)} className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink">
         {fill(inv.message)}
       </motion.p>
 
-      <motion.div {...reveal(4)} className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <InvitationCard reveal={reveal(cardAt)} />
+
+      <motion.div {...reveal(buttonsAt)} className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
         <Magnetic>
           <Button size="lg" shimmer onClick={onYes} icon={<Heart className="h-5 w-5" fill="currentColor" />}>
             {fill(inv.yesLabel)}
@@ -97,9 +140,20 @@ function TheQuestion({ play, reduce, planFirst, onYes, onPlanFirst, onPlan }) {
             transition={{ duration: 0.6, ease: EASE_SILK }}
             className="mx-auto mt-8 max-w-lg rounded-[26px] border border-white/70 bg-paper/85 px-6 py-6 shadow-soft"
           >
-            <p role="status" className="text-pretty font-display text-xl italic leading-relaxed text-ink">
-              {fill(inv.planFirstMessage)}
-            </p>
+            <div role="status" className="space-y-3">
+              {planMessages.map((message, i) => (
+                <p
+                  key={i}
+                  className={
+                    i === 0
+                      ? 'text-pretty font-display text-xl italic leading-relaxed text-ink'
+                      : 'text-pretty font-hand text-[1.45rem] leading-snug text-burgundy'
+                  }
+                >
+                  {fill(message)}
+                </p>
+              ))}
+            </div>
             <div className="mt-5">
               <Button onClick={onPlan} icon={<CalendarHeart className="h-5 w-5" />}>
                 {fill(inv.planTogetherLabel)}
@@ -128,10 +182,7 @@ function Celebration({ play, fresh, onPickDate, onReplay }) {
       >
         <span aria-hidden className="heart-ring absolute inset-0 rounded-full" />
         <span aria-hidden className="heart-ring heart-ring--late absolute inset-0 rounded-full" />
-        <motion.span
-          animate={{ scale: [1, 1.15, 1, 1.08, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity, times: [0, 0.14, 0.28, 0.42, 1] }}
-        >
+        <motion.span animate={{ scale: [1, 1.15, 1, 1.08, 1] }} transition={{ duration: 1.5, repeat: Infinity, times: [0, 0.14, 0.28, 0.42, 1] }}>
           <Heart aria-hidden className="h-12 w-12 text-burgundy" fill="currentColor" strokeWidth={1} />
         </motion.span>
       </motion.div>
@@ -145,8 +196,8 @@ function Celebration({ play, fresh, onPickDate, onReplay }) {
       <motion.p {...reveal(1)} className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink">
         {fill(s.message)}
       </motion.p>
-      <motion.p {...reveal(2)} className="mt-10 font-hand text-[clamp(2rem,5vw,2.75rem)] leading-tight text-burgundy">
-        {fill(s.kicker)}
+      <motion.p {...reveal(2)} className="mx-auto mt-10 max-w-2xl text-balance font-hand text-[clamp(1.9rem,4.6vw,2.6rem)] leading-tight text-burgundy">
+        {fill(proposal.upcoming ? s.kicker : s.kickerNoDate)}
       </motion.p>
       <motion.div {...reveal(3)} className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Button size="lg" onClick={onPickDate} icon={<CalendarHeart className="h-5 w-5" />}>
@@ -162,7 +213,7 @@ function Celebration({ play, fresh, onPickDate, onReplay }) {
 
 function PlanSummary({ plan, onEdit }) {
   const planner = config.datePlanner
-  const d = describePlan(plan, planner)
+  const d = describePlan(plan)
   if (!d || (!d.what && !d.when && !d.note)) return null
   const text = [d.what, d.when].filter(Boolean).join(' · ') || d.note
 
@@ -187,10 +238,10 @@ function PlanSummary({ plan, onEdit }) {
   )
 }
 
-/** G · The big question. */
+/** H · The big question. Nothing is preselected; both answers are genuinely welcome. */
 export function DateInvitation({ answer, onAnswer, plan, onPlanChange, onReplay }) {
   const ref = useRef(null)
-  const inView = useInView(ref, { once: true, amount: 0.35 })
+  const inView = useInView(ref, { once: true, amount: 0.3 })
   const reduce = useReducedMotionPreference()
   const [plannerOpen, setPlannerOpen] = useState(false)
   const [hearts, setHearts] = useState(false)

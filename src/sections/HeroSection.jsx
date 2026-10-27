@@ -48,7 +48,7 @@ function ScrollCue({ label, onClick, reduce }) {
       className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 rounded-full p-2 text-ink-soft transition-colors hover:text-burgundy sm:bottom-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 3.1, duration: 1 }}
+      transition={{ delay: reduce ? 0.6 : 4.4, duration: 1 }}
     >
       <span className="text-[10px] font-medium uppercase tracking-[0.4em]">{label}</span>
       <span aria-hidden className="relative block h-10 w-px overflow-hidden bg-rose-gold/25">
@@ -62,12 +62,14 @@ function ScrollCue({ label, onClick, reduce }) {
   )
 }
 
-/** A · The cinematic opening. */
+/** A · The opening: a cancelled plan, a playful comeback. */
 export function HeroSection({ focusOnMount = false }) {
   const ref = useRef(null)
   const headingRef = useRef(null)
   const reduce = useReducedMotionPreference()
   const { hero } = config
+  // reduced motion: the same staged order, just much quicker
+  const at = (seconds) => (reduce ? Math.min(seconds, 0.6) : seconds)
 
   // the opening drifts up, shrinks a touch and fades as she scrolls away
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
@@ -77,7 +79,7 @@ export function HeroSection({ focusOnMount = false }) {
 
   const goNext = () => scrollToSection('#intro')
 
-  // after "Replay our little story", bring keyboard focus back to the top
+  // after "Replay my little surprise", bring keyboard focus back to the top
   useEffect(() => {
     if (focusOnMount) headingRef.current?.focus({ preventScroll: true })
   }, [focusOnMount])
@@ -93,8 +95,8 @@ export function HeroSection({ focusOnMount = false }) {
 
       <motion.div style={reduce ? undefined : { y, scale, opacity }} className="relative z-10 flex w-full max-w-4xl flex-col items-center text-center">
         <motion.p
-          {...fadeUp(0.2)}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-paper/70 px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.32em] text-burgundy sm:mb-8 sm:text-[11px]"
+          {...fadeUp(at(0.2))}
+          className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-paper/70 px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.3em] text-burgundy sm:mb-7 sm:text-[11px]"
         >
           <Sparkles aria-hidden className="h-3 w-3" />
           {fill(hero.eyebrow)}
@@ -103,7 +105,7 @@ export function HeroSection({ focusOnMount = false }) {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2, delay: 0.35, ease: EASE_SILK }}
+          transition={{ duration: 1.2, delay: at(0.35), ease: EASE_SILK }}
         >
           <Heart3D />
         </motion.div>
@@ -112,20 +114,27 @@ export function HeroSection({ focusOnMount = false }) {
           id="hero-title"
           ref={headingRef}
           tabIndex={-1}
-          className="mt-8 font-display text-[clamp(3rem,10vw,6.75rem)] font-normal leading-[0.98] text-burgundy outline-none sm:mt-10"
+          className="mt-7 max-w-4xl text-balance font-display text-[clamp(2.5rem,8vw,5.25rem)] font-normal leading-[1.02] text-burgundy outline-none sm:mt-9"
         >
-          <SplitText text={fill(hero.headline)} delay={0.75} stagger={0.045} colorAt={headlineColor} />
+          <SplitText text={fill(hero.headline)} delay={at(0.6)} stagger={reduce ? 0 : 0.035} colorAt={headlineColor} />
         </h1>
 
-        <p className="mt-4 font-display text-[clamp(1.45rem,3.6vw,2.3rem)] font-light italic leading-snug text-ink">
-          <SplitText text={fill(hero.reveal)} by="words" delay={1.55} stagger={0.075} />
-        </p>
-
-        <motion.p {...fadeUp(2.3)} className="mt-4 max-w-md text-balance text-base leading-relaxed text-ink-soft sm:text-lg">
+        <motion.p {...fadeUp(at(1.9))} className="mt-5 max-w-xl text-balance text-[15px] leading-relaxed text-ink-soft sm:text-lg">
           {fill(hero.supporting)}
         </motion.p>
 
-        <motion.div {...fadeUp(2.65)} className="mt-8 sm:mt-10">
+        <p className="mt-6 font-display text-[clamp(1.5rem,3.6vw,2.3rem)] font-light italic leading-snug text-ink">
+          <SplitText text={fill(hero.reveal)} by="words" delay={at(2.6)} stagger={reduce ? 0 : 0.075} />
+        </p>
+
+        <motion.p
+          {...fadeUp(at(3.3))}
+          className="mt-2 max-w-2xl text-balance font-display text-[clamp(1.1rem,2.3vw,1.4rem)] italic leading-snug text-ink-soft"
+        >
+          {fill(hero.revealFollowUp)}
+        </motion.p>
+
+        <motion.div {...fadeUp(at(3.8))} className="mt-8 sm:mt-10">
           <Magnetic>
             <Button size="lg" shimmer icon={<Gift className="h-5 w-5" />} onClick={goNext}>
               {fill(hero.cta)}

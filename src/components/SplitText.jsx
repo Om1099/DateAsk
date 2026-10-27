@@ -1,23 +1,9 @@
 import { motion } from 'motion/react'
-import { EASE_SILK, HEART_PATH_24, cn, splitGraphemes } from '../lib/utils'
+import { EASE_SILK, cn, splitGraphemes } from '../lib/utils'
+import { HEART_GLYPHS, HeartGlyph, HeartText } from './HeartText'
 
 // Heart emoji are drawn as an on-palette SVG heart (system emoji can look loud next to the serif type).
 // Screen readers still get the original character from the sr-only copy.
-const HEART_GLYPHS = new Set(['❤️', '❤', '♥️', '♥'])
-
-function HeartGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="glyph-beat inline-block h-[0.72em] w-[0.78em] align-[-0.02em]">
-      <defs>
-        <linearGradient id="split-heart-gradient" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#e3a7b5" />
-          <stop offset="1" stopColor="#8a4d5e" />
-        </linearGradient>
-      </defs>
-      <path d={HEART_PATH_24} fill="url(#split-heart-gradient)" />
-    </svg>
-  )
-}
 
 const container = {
   hidden: {},
@@ -35,6 +21,15 @@ const VARIANTS = {
   },
 }
 
+// A lone symbol ("♡", "❤️") sticks to the word before it, so it never wraps onto a line by itself.
+const SYMBOL_ONLY = /^[^\p{L}\p{N}]+$/u
+const joinTrailingSymbols = (words) =>
+  words.reduce((out, word) => {
+    if (out.length && SYMBOL_ONLY.test(word)) out[out.length - 1] += ` ${word}`
+    else out.push(word)
+    return out
+  }, [])
+
 /**
  * Staggered text reveal, character by character (emoji-safe) or word by word.
  * Words never break mid-word. Screen readers get the plain sentence.
@@ -42,7 +37,7 @@ const VARIANTS = {
  */
 export function SplitText({ text, className, by = 'chars', variant = 'rise', delay = 0, stagger = 0.035, play = true, colorAt }) {
   const item = VARIANTS[variant] ?? VARIANTS.rise
-  const words = text.split(' ')
+  const words = joinTrailingSymbols(text.split(' ').filter(Boolean))
   const total = by === 'chars' ? splitGraphemes(text.replace(/ /g, '')).length : words.length
   let index = 0
 
@@ -59,7 +54,7 @@ export function SplitText({ text, className, by = 'chars', variant = 'rise', del
         <span key={wi} aria-hidden="true" className="inline-block whitespace-nowrap">
           {by === 'words' ? (
             <motion.span variants={item} className="inline-block">
-              {word}
+              <HeartText text={word} />
             </motion.span>
           ) : (
             splitGraphemes(word).map((ch, ci) => {

@@ -1,34 +1,39 @@
-/** Today's date as a local YYYY-MM-DD string (the date picker's minimum). */
-export function todayISO() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+import { config, fill, names, proposal } from '../data'
+import { formatLongDate, parseISODate } from './dates'
+
+/**
+ * Day choices for the planner. The proposed date comes first — but only while it's still upcoming,
+ * so the page never offers a day that has already gone by.
+ */
+export function getDayOptions() {
+  const { datePlanner: planner, dateMode } = config
+  const proposed = proposal.upcoming
+    ? [{ value: proposal.iso, label: formatLongDate(proposal.iso), note: names.myName ? fill(planner.proposedNote) : '♡' }]
+    : []
+  if (dateMode === 'fixed') return proposed.length ? proposed : [{ value: 'together', label: fill(planner.undecidedLabel) }]
+  return [...proposed, ...planner.days]
 }
 
-export function formatISODate(iso) {
-  const [y, m, d] = String(iso).split('-').map(Number)
-  if (!y || !m || !d) return iso
-  return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).format(
-    new Date(y, m - 1, d),
-  )
-}
-
-/** Turns a saved plan into readable labels using the planner config. */
-export function describePlan(plan, planner) {
+/** Turns a saved plan into readable labels. */
+export function describePlan(plan, days = getDayOptions()) {
   if (!plan) return null
-  const option = planner.options.find((o) => o.id === plan.optionId)
-  const day = planner.days.find((d) => d.value === plan.day)
-  const when = plan.day === 'custom' && plan.customDate ? formatISODate(plan.customDate) : (day?.label ?? '')
-  return { what: option?.label ?? '', when, note: plan.note ?? '' }
+  const option = config.datePlanner.options.find((o) => o.id === plan.optionId)
+  const day = days.find((d) => d.value === plan.day)
+  let when = ''
+  if (plan.day === 'custom' && plan.customDate) when = formatLongDate(plan.customDate)
+  else if (day) when = fill(day.label)
+  else if (parseISODate(plan.day)) when = formatLongDate(plan.day)
+  return { what: option ? fill(option.label) : '', when, note: plan.note ?? '' }
 }
 
-export function planToText(plan, planner, herName) {
-  const d = describePlan(plan, planner)
+export function planToText(plan) {
+  const d = describePlan(plan)
   if (!d) return ''
   const lines = ['Our little date ♡']
   if (d.what) lines.push(`What: ${d.what}`)
   if (d.when) lines.push(`When: ${d.when}`)
   if (d.note) lines.push(`Note: ${d.note}`)
-  if (herName) lines.push(`— planned by ${herName}`)
+  if (names.her) lines.push(`— planned by ${names.her}`)
   return lines.join('\n')
 }
 

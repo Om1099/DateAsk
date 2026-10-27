@@ -1,20 +1,37 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { CalendarDays, Check, Coffee, Copy, Gift, Heart, Lock, Pencil, Sparkles, Sunset, UtensilsCrossed, X } from 'lucide-react'
-import { config, fill, names } from '../data'
-import { copyText, describePlan, planToText, todayISO } from '../lib/plan'
+import {
+  CalendarDays,
+  Check,
+  Coffee,
+  Copy,
+  Gift,
+  Heart,
+  Lock,
+  Pencil,
+  RotateCcw,
+  Sofa,
+  Sparkles,
+  Sunset,
+  UtensilsCrossed,
+  X,
+} from 'lucide-react'
+import { config, fill, proposal, remember } from '../data'
+import { todayISO } from '../lib/dates'
+import { copyText, describePlan, getDayOptions, planToText } from '../lib/plan'
 import { cn } from '../lib/utils'
 import { Button, IconButton } from './Button'
 import { Modal } from './Modal'
 
-const ICONS = { coffee: Coffee, dinner: UtensilsCrossed, sunset: Sunset, gift: Gift, sparkles: Sparkles, heart: Heart }
+const ICONS = { coffee: Coffee, dinner: UtensilsCrossed, sunset: Sunset, gift: Gift, relaxed: Sofa, sparkles: Sparkles, heart: Heart }
+const EMPTY = { optionId: '', day: '', customDate: '', note: '' }
 
 const legend = 'text-[11px] font-medium uppercase tracking-[0.28em] text-burgundy'
 const focusRing = 'has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-burgundy'
 
 /**
- * Optional, playful date planner. Her picks are saved only in this browser (localStorage) —
- * nothing is submitted anywhere. She can copy the plan and send it herself if she likes.
+ * Optional, playful date planner. Every field is optional, nothing is ever submitted anywhere,
+ * and she can edit or reset her picks. She can copy the plan and send it herself if she likes.
  */
 export function DatePreferencePanel({ open, onClose, plan, onSave }) {
   return (
@@ -32,6 +49,8 @@ export function DatePreferencePanel({ open, onClose, plan, onSave }) {
 
 function Planner({ plan, onSave, onClose }) {
   const p = config.datePlanner
+  const days = useMemo(() => getDayOptions(), [])
+  const canPickDate = config.dateMode !== 'fixed'
   const [draft, setDraft] = useState(() => ({
     optionId: plan?.optionId ?? '',
     day: plan?.day ?? '',
@@ -50,10 +69,16 @@ function Planner({ plan, onSave, onClose }) {
     setSaved(next)
   }
 
+  const reset = () => {
+    onSave(null)
+    setDraft(EMPTY)
+    setSaved(null)
+  }
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       {saved ? (
-        <SavedView key="saved" plan={saved} onEdit={() => setSaved(null)} onDone={onClose} />
+        <SavedView key="saved" plan={saved} onEdit={() => setSaved(null)} onReset={reset} onDone={onClose} />
       ) : (
         <motion.form
           key="form"
@@ -130,8 +155,11 @@ function Planner({ plan, onSave, onClose }) {
 
           <fieldset className="mt-7">
             <legend className={legend}>{fill(p.whenLabel)}</legend>
+            {proposal.upcoming && canPickDate && p.whenHint && (
+              <p className="mt-2 font-hand text-lg leading-snug text-burgundy">{fill(p.whenHint)}</p>
+            )}
             <div className="mt-3 flex flex-wrap gap-2">
-              {p.days.map((d) => {
+              {days.map((d) => {
                 const selected = draft.day === d.value
                 return (
                   <label
@@ -160,7 +188,7 @@ function Planner({ plan, onSave, onClose }) {
                 )
               })}
             </div>
-            {p.allowCustomDate && (
+            {canPickDate && (
               <label className="mt-3 flex flex-wrap items-center gap-3 text-sm text-ink-soft">
                 <CalendarDays aria-hidden className="h-4 w-4 text-burgundy" />
                 <span>{fill(p.customDateLabel)}</span>
@@ -196,10 +224,20 @@ function Planner({ plan, onSave, onClose }) {
 
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-ink-soft">
             <Lock aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            {fill(p.privacyNote)}
+            {fill(remember ? p.privacyNoteRemembered : p.privacyNote)}
           </p>
 
-          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+            {plan && (
+              <button
+                type="button"
+                onClick={reset}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-3 text-sm text-ink-soft underline-offset-4 transition-colors hover:text-burgundy hover:underline sm:mr-auto"
+              >
+                <RotateCcw aria-hidden className="h-3.5 w-3.5" />
+                {fill(p.resetLabel)}
+              </button>
+            )}
             <Button variant="secondary" onClick={onClose}>
               {fill(p.cancelLabel)}
             </Button>
@@ -214,19 +252,19 @@ function Planner({ plan, onSave, onClose }) {
   )
 }
 
-function SavedView({ plan, onEdit, onDone }) {
+function SavedView({ plan, onEdit, onReset, onDone }) {
   const p = config.datePlanner
   const headingRef = useRef(null)
   const [copyState, setCopyState] = useState('idle')
-  const details = describePlan(plan, p)
+  const details = describePlan(plan)
 
-  // the form (and the focused button) just disappeared — bring focus to the new content
+  // the form (and its focused button) just disappeared — bring focus to the new content
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true })
   }, [])
 
   const copy = async () => {
-    const ok = await copyText(planToText(plan, p, names.her))
+    const ok = await copyText(planToText(plan))
     setCopyState(ok ? 'copied' : 'failed')
   }
 
@@ -254,7 +292,7 @@ function SavedView({ plan, onEdit, onDone }) {
       <h2 id="planner-title" ref={headingRef} tabIndex={-1} className="mt-4 font-display text-3xl text-burgundy outline-none">
         {fill(p.savedTitle)}
       </h2>
-      <p className="mt-1 text-sm text-ink-soft">{fill(p.savedMessage)}</p>
+      <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{fill(p.savedMessage)}</p>
 
       <dl className="mt-6 space-y-3 rounded-2xl border border-rose-gold/15 bg-ivory p-4 text-left">
         {rows.map(([label, value]) => (
@@ -276,13 +314,23 @@ function SavedView({ plan, onEdit, onDone }) {
       <p role="status" className="mt-4 font-hand text-xl text-burgundy">
         {copyState === 'failed' ? fill(p.copyFailedLabel) : fill(p.copyHint)}
       </p>
-      <button
-        type="button"
-        onClick={onDone}
-        className="mt-4 rounded-full px-3 py-1 text-sm text-ink-soft underline-offset-4 transition-colors hover:text-burgundy hover:underline"
-      >
-        {fill(p.doneLabel)}
-      </button>
+      <div className="mt-4 flex items-center justify-center gap-5">
+        <button
+          type="button"
+          onClick={onReset}
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm text-ink-soft underline-offset-4 transition-colors hover:text-burgundy hover:underline"
+        >
+          <RotateCcw aria-hidden className="h-3.5 w-3.5" />
+          {fill(p.resetLabel)}
+        </button>
+        <button
+          type="button"
+          onClick={onDone}
+          className="rounded-full px-3 py-1 text-sm text-ink-soft underline-offset-4 transition-colors hover:text-burgundy hover:underline"
+        >
+          {fill(p.doneLabel)}
+        </button>
+      </div>
     </motion.div>
   )
 }

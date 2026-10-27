@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { MotionConfig } from 'motion/react'
+import { remember } from './data'
 import { CursorGlow } from './components/CursorGlow'
 import { Divider } from './components/Divider'
 import { FloatingPetals } from './components/FloatingPetals'
@@ -14,25 +15,30 @@ import { IntroSection } from './sections/IntroSection'
 import { LoveLetter } from './sections/LoveLetter'
 import { MemoryGallery } from './sections/MemoryGallery'
 import { VoiceNoteSection } from './sections/VoiceNoteSection'
+import { WardrobeInvestigation } from './sections/WardrobeInvestigation'
 
 export default function App() {
-  // Her answer and date picks are remembered in this browser only (see README → Privacy).
-  const [answer, setAnswer] = usePersistentState('answer', null)
-  const [plan, setPlan] = usePersistentState('plan', null)
+  // Her choices live in component state; with `rememberChoices: true` they're also kept
+  // in her browser's localStorage (never sent anywhere — see README → Privacy).
+  const [answer, setAnswer] = usePersistentState('answer', null, remember)
+  const [outfit, setOutfit] = usePersistentState('outfit', null, remember)
+  const [plan, setPlan] = usePersistentState('plan', null, remember)
   const [storyKey, setStoryKey] = useState(0)
 
-  /** Glide back to the top, then replay every section from the beginning. */
+  /** Glide back to the top, then replay the story from the beginning (her date plan is kept). */
   const replay = useCallback(async () => {
     scrollToSection(0)
     await waitForScroll(0)
     setAnswer(null)
+    setOutfit(null)
     setStoryKey((k) => k + 1)
-  }, [setAnswer])
+  }, [setAnswer, setOutfit])
 
   const clearSaved = useCallback(() => {
     setAnswer(null)
+    setOutfit(null)
     setPlan(null)
-  }, [setAnswer, setPlan])
+  }, [setAnswer, setOutfit, setPlan])
 
   return (
     <MotionConfig reducedMotion="user">
@@ -50,10 +56,11 @@ export default function App() {
         <Divider />
         <LoveLetter />
         <VoiceNoteSection />
+        <WardrobeInvestigation outfit={outfit} onOutfitChange={setOutfit} />
         <DateInvitation answer={answer} onAnswer={setAnswer} plan={plan} onPlanChange={setPlan} onReplay={replay} />
       </main>
 
-      <Footer onReplay={replay} onClear={clearSaved} hasSaved={Boolean(answer || plan)} />
+      <Footer onReplay={replay} onClear={clearSaved} hasSaved={Boolean(answer || outfit || plan)} />
     </MotionConfig>
   )
 }

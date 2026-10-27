@@ -11,24 +11,24 @@ const getHeart = () =>
 // disableForReducedMotion: no confetti at all for visitors who asked for less motion
 const base = { colors: COLORS, disableForReducedMotion: true, zIndex: 120 }
 
-/** A tasteful celebration: one soft bloom, a handful of hearts and two brief side flourishes. */
+/** A subtle celebration: one soft bloom, a handful of hearts and two brief side flourishes. */
 export function celebrate() {
   const heart = getHeart()
 
-  confetti({ ...base, particleCount: 100, spread: 92, startVelocity: 40, origin: { y: 0.62 }, scalar: 0.95 })
+  confetti({ ...base, particleCount: 70, spread: 88, startVelocity: 36, origin: { y: 0.62 }, scalar: 0.9 })
   confetti({
     ...base,
-    particleCount: 26,
-    spread: 120,
-    startVelocity: 30,
+    particleCount: 18,
+    spread: 110,
+    startVelocity: 28,
     origin: { y: 0.6 },
     shapes: [heart],
-    scalar: 2.2,
-    ticks: 260,
+    scalar: 2.1,
+    ticks: 240,
     gravity: 0.7,
   })
 
-  const end = Date.now() + 1200
+  const end = Date.now() + 800
   const frame = () => {
     const side = { ...base, particleCount: 2, spread: 58, startVelocity: 52, shapes: [heart, 'circle'], scalar: 1.25 }
     confetti({ ...side, angle: 60, origin: { x: 0, y: 0.78 } })

@@ -160,7 +160,14 @@ function Envelope({ phase, onOpen, hasRead, autoFocus, greeting }) {
   )
 }
 
-/** Splits the single letter string into greeting · paragraphs · sign-off. */
+// "With love," · "With a smile," · "Forever yours," … — where the sign-off starts
+const VALEDICTION = /^(with (all my |lots of )?love|with a smile|lots of love|love|yours( always| truly)?|forever( yours)?|always( yours)?|xoxo|warmly)\s*,$/i
+
+/**
+ * Splits the single letter string into greeting · paragraphs · sign-off · signature.
+ * The greeting is a short first line; the sign-off starts at the last valediction ("With love,");
+ * its final short line is shown as the handwritten signature.
+ */
 function parseLetter(text) {
   const blocks = text
     .trim()
@@ -168,23 +175,49 @@ function parseLetter(text) {
     .map((b) => b.trim())
     .filter(Boolean)
   let greeting = null
-  let signoff = null
   if (blocks.length > 1 && blocks[0].length <= 48 && !blocks[0].includes('\n')) greeting = blocks.shift()
-  const last = blocks.at(-1)
-  if (blocks.length > 1 && last.includes('\n') && last.length <= 160) signoff = blocks.pop()
-  return { greeting, body: blocks, signoff }
+
+  let start = -1
+  for (let i = blocks.length - 1; i >= Math.max(1, blocks.length - 4); i--) {
+    if (VALEDICTION.test(blocks[i].split('\n')[0].trim())) {
+      start = i
+      break
+    }
+  }
+
+  const signoff = start > 0 ? blocks.splice(start) : []
+  let signature = null
+  if (signoff.length) {
+    const lines = signoff.at(-1).split('\n')
+    const tail = lines.at(-1).trim()
+    if (tail.length <= 40 && !VALEDICTION.test(tail)) {
+      signature = tail
+      lines.pop()
+      if (lines.length) signoff[signoff.length - 1] = lines.join('\n')
+      else signoff.pop()
+    }
+  }
+  return { greeting, body: blocks, signoff, signature }
 }
 
-const letterFlow = { hidden: {}, show: { transition: { staggerChildren: 0.16, delayChildren: 0.3 } } }
 const letterLine = {
   hidden: { opacity: 0, y: 18, filter: 'blur(5px)' },
-  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.85, ease: EASE_SILK } },
+  show: (delay = 0) => ({ opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.85, ease: EASE_SILK, delay } }),
 }
+
+// Each line fades in as she reaches it; the first few cascade in as the letter opens.
+const lineReveal = (i) => ({
+  variants: letterLine,
+  initial: 'hidden',
+  whileInView: 'show',
+  viewport: { once: true, amount: 0.3 },
+  custom: i < 4 ? 0.3 + i * 0.15 : 0.1,
+})
 
 function LetterPaper({ onClose }) {
   const { letter } = config
   const focusRef = useRef(null)
-  const { greeting, body, signoff } = useMemo(() => parseLetter(fill(letter.text)), [letter.text])
+  const { greeting, body, signoff, signature } = useMemo(() => parseLetter(fill(letter.text)), [letter.text])
 
   // move focus into the letter so keyboard & screen-reader users land on it
   useEffect(() => {
@@ -211,13 +244,13 @@ function LetterPaper({ onClose }) {
         <X aria-hidden className="h-4 w-4" />
       </IconButton>
 
-      <motion.div variants={letterFlow} initial="hidden" animate="show">
+      <div>
         {greeting && (
           <motion.p
             ref={focusRef}
             id="letter-greeting"
             tabIndex={-1}
-            variants={letterLine}
+            {...lineReveal(0)}
             className="pr-12 font-hand text-[2.5rem] leading-tight text-burgundy outline-none sm:text-5xl"
           >
             {greeting}
@@ -226,28 +259,32 @@ function LetterPaper({ onClose }) {
         {body.map((paragraph, i) => (
           <motion.p
             key={i}
-            variants={letterLine}
+            {...lineReveal(i + 1)}
             className="mt-5 whitespace-pre-line text-pretty font-display text-[1.25rem] leading-[1.7] text-ink sm:text-[1.4rem]"
           >
             {paragraph}
           </motion.p>
         ))}
-        {signoff && (
-          <motion.p variants={letterLine} className="mt-9 whitespace-pre-line text-right font-display text-xl italic leading-relaxed text-ink-soft">
-            {signoff}
+        {signoff.length > 0 && (
+          <motion.div {...lineReveal(99)} className="mt-10 space-y-1 text-right font-display text-xl italic leading-relaxed text-ink-soft">
+            {signoff.map((block, i) => (
+              <p key={i} className="whitespace-pre-line">
+                {block}
+              </p>
+            ))}
+          </motion.div>
+        )}
+        {signature && (
+          <motion.p {...lineReveal(99)} className="mt-2 text-right font-hand text-[2.6rem] leading-none text-burgundy">
+            {signature}
           </motion.p>
         )}
-        {letter.showSignature && names.me && (
-          <motion.p variants={letterLine} className="mt-1 text-right font-hand text-[2.6rem] leading-none text-burgundy">
-            {names.me}
-          </motion.p>
-        )}
-        <motion.div variants={letterLine} className="mt-12 flex justify-center">
+        <motion.div {...lineReveal(99)} className="mt-12 flex justify-center">
           <Button variant="secondary" onClick={onClose} icon={<Mail className="h-4 w-4" />}>
             {fill(letter.closeLabel)}
           </Button>
         </motion.div>
-      </motion.div>
+      </div>
     </motion.article>
   )
 }

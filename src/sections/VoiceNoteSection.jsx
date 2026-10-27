@@ -25,7 +25,7 @@ export function VoiceNoteSection() {
           </h2>
         </SectionReveal>
         <SectionReveal delay={0.12} className="mt-8 text-left">
-          <VoiceNotePlayer src={withBase(voiceNote.src)} title={fill(voiceNote.title)} missingMessage={fill(voiceNote.missingMessage)} />
+          <VoiceNotePlayer src={withBase(config.audioPath)} title={fill(voiceNote.title)} missingMessage={fill(voiceNote.missingMessage)} />
         </SectionReveal>
       </div>
     </section>

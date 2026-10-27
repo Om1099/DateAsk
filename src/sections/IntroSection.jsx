@@ -1,36 +1,46 @@
-import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'motion/react'
-import { config, fill } from '../data'
+import { motion } from 'motion/react'
+import { config, fill, names, nicknames } from '../data'
 import { LocalPetals } from '../components/FloatingPetals'
-import { Eyebrow } from '../components/SectionHeading'
 import { SectionReveal } from '../components/SectionReveal'
 import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
 import { EASE_SILK } from '../lib/utils'
 
-function LitWord({ word, progress, range, still }) {
-  const opacity = useTransform(progress, range, [0.16, 1])
-  return <motion.span style={still ? undefined : { opacity }}>{word} </motion.span>
-}
+const listOf = (items) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} & ${items.at(-1)}`)
 
-/** The note "reads itself": each word brightens in turn as she scrolls (no React re-renders). */
-function ScrollLitText({ paragraphs }) {
-  const ref = useRef(null)
-  const reduce = useReducedMotionPreference()
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.85', 'end 0.55'] })
-  const split = paragraphs.map((p) => p.split(/\s+/).filter(Boolean))
-  const total = split.reduce((n, words) => n + words.length, 0)
-  let index = 0
+/** "To / From / Re" — a nod to the formal-but-playful invitation email. */
+function Memo() {
+  const { memo } = config.intro
+  const to = names.herName && (nicknames.length ? `${names.herName} — ${fill(memo.akaPrefix)} ${listOf(nicknames)}` : names.herName)
+  const from = names.myName ? fill(memo.from) : fill(memo.from).replace(/^,\s*/, '')
+  const rows = [
+    [fill(memo.toLabel), to],
+    [fill(memo.fromLabel), from],
+    [fill(memo.reLabel), fill(memo.re)],
+  ].filter(([, value]) => value)
 
   return (
-    <div ref={ref} className="mt-8 space-y-6">
-      {split.map((words, pi) => (
-        <p key={pi} className="text-pretty font-display text-[clamp(1.35rem,2.7vw,1.8rem)] font-light leading-[1.55] text-ink">
-          {words.map((word, wi) => {
-            const i = index++
-            return <LitWord key={wi} word={word} progress={scrollYProgress} range={[i / total, (i + 1) / total]} still={reduce} />
-          })}
-        </p>
+    <dl className="mb-8 space-y-1.5 border-b border-dashed border-rose-gold/30 pb-6">
+      {rows.map(([label, value]) => (
+        <div key={label} className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-baseline gap-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.28em] text-burgundy">{label}</dt>
+          <dd className="font-display text-[1.05rem] italic leading-snug text-ink sm:text-lg">{value}</dd>
+        </div>
       ))}
+    </dl>
+  )
+}
+
+/** A little clothes tag hanging off the note, swaying gently. */
+function OutfitTag({ text, reduce }) {
+  return (
+    <div aria-hidden className="absolute -top-5 right-5 z-10 sm:right-10">
+      <div className={reduce ? undefined : 'tag-swing'}>
+        <span className="mx-auto block h-5 w-px bg-rose-gold/70" />
+        <div className="relative rotate-[4deg] rounded-[10px] border border-rose-gold/40 bg-champagne px-3.5 pb-1.5 pt-3.5 shadow-card">
+          <span className="absolute left-1/2 top-1.5 h-1.5 w-1.5 -translate-x-1/2 rounded-full border border-rose-gold/60 bg-paper" />
+          <span className="block whitespace-nowrap font-hand text-lg leading-none text-burgundy">{text}</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -61,27 +71,43 @@ function Annotation({ text }) {
   )
 }
 
-/** B · A little note before we begin. */
+/** B · A note from your overthinking boyfriend. */
 export function IntroSection() {
+  const reduce = useReducedMotionPreference()
   const { intro } = config
-  const paragraphs = intro.paragraphs.map(fill)
 
   return (
     <section id="intro" aria-labelledby="intro-title" className="relative px-5 py-24 sm:px-8 sm:py-36">
       <LocalPetals count={5} seed={7} />
       <div className="relative mx-auto max-w-3xl">
-        <SectionReveal y={60} amount={0.15}>
+        <SectionReveal y={60} amount={0.12}>
           <article className="paper-texture relative rotate-[-0.6deg] rounded-[6px] px-7 pb-16 pt-14 shadow-lifted sm:px-16 sm:pb-20 sm:pt-16">
             <span aria-hidden className="pointer-events-none absolute inset-3 rounded-[3px] border border-rose-gold/20 sm:inset-4" />
-            <span aria-hidden className="absolute -top-3.5 left-1/2 h-7 w-28 -translate-x-1/2 rotate-[-3deg] bg-blush-deep/70 shadow-sm" />
-            <Eyebrow className="[&>span:first-child]:hidden">{fill(intro.eyebrow)}</Eyebrow>
+            <span aria-hidden className="absolute -top-3.5 left-8 h-7 w-24 rotate-[-4deg] bg-blush-deep/70 shadow-sm sm:left-14" />
+            <OutfitTag text={fill(intro.tag)} reduce={reduce} />
+
+            <Memo />
             <h2
               id="intro-title"
-              className="mt-5 text-balance font-display text-[clamp(2.2rem,5.4vw,3.6rem)] font-light leading-[1.05] text-burgundy"
+              className="text-balance font-display text-[clamp(2.1rem,5.2vw,3.5rem)] font-light leading-[1.06] text-burgundy"
             >
               {fill(intro.headline)}
             </h2>
-            <ScrollLitText paragraphs={paragraphs} />
+            <div className="mt-8 space-y-6">
+              {intro.paragraphs.map((paragraph, i) => (
+                <SectionReveal
+                  key={i}
+                  as="p"
+                  y={22}
+                  scale={1}
+                  amount={0.5}
+                  delay={i * 0.08}
+                  className="text-pretty font-display text-[clamp(1.3rem,2.6vw,1.7rem)] font-light leading-[1.6] text-ink"
+                >
+                  {fill(paragraph)}
+                </SectionReveal>
+              ))}
+            </div>
           </article>
         </SectionReveal>
         <Annotation text={fill(intro.annotation)} />

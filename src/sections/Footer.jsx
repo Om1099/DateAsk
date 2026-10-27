@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { RotateCcw, Trash2 } from 'lucide-react'
-import { config, fill } from '../data'
+import { config, fill, remember } from '../data'
 import { Button } from '../components/Button'
 import { Divider } from '../components/Divider'
 
@@ -15,12 +15,17 @@ export function Footer({ onReplay, onClear, hasSaved }) {
     >
       <Divider />
       <p className="mt-2 font-hand text-[2rem] leading-tight text-burgundy">{fill(footer.line)}</p>
-      <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.3em] text-ink-soft">{fill(footer.credit)}</p>
+      {config.signatureLine && (
+        <p className="mx-auto mt-3 max-w-md text-balance font-display text-xl italic leading-snug text-ink">
+          “{fill(config.signatureLine)}”
+        </p>
+      )}
+      <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.3em] text-ink-soft">{fill(footer.credit)}</p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
         <Button variant="quiet" size="sm" onClick={onReplay} icon={<RotateCcw className="h-4 w-4" />}>
           {fill(footer.replayLabel)}
         </Button>
-        {hasSaved && (
+        {remember && hasSaved && (
           <Button
             variant="quiet"
             size="sm"

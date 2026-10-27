@@ -177,6 +177,32 @@
     animation: glyph-beat 2.4s ease-in-out 3s infinite;
   }
 
+  .heart-soft {
+    transform-origin: 50% 60%;
+    animation: glyph-beat 2.4s ease-in-out infinite;
+  }
+
+  /* the little clothes tag on the note */
+  .tag-swing {
+    transform-origin: 50% 0%;
+    animation: tag-swing 3.6s ease-in-out infinite alternate;
+  }
+
+  /* "reviewing…" dots on the wardrobe case file */
+  .dot-blink {
+    animation: dot-blink 1.2s ease-in-out infinite;
+  }
+
+  .progress-indeterminate::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 45%;
+    border-radius: inherit;
+    background: var(--dusty-rose);
+    animation: indeterminate 1.5s ease-in-out infinite;
+  }
+
   .tree-fall {
     transform-box: fill-box;
     transform-origin: center;
@@ -302,6 +328,34 @@
   }
   19% {
     transform: scale(1.04);
+  }
+}
+
+@keyframes tag-swing {
+  from {
+    transform: rotate(-5deg);
+  }
+  to {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes dot-blink {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(240%);
   }
 }
 
