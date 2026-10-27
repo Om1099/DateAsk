@@ -1,0 +1,331 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ */
+/*  Palette — edit these CSS variables to re-theme the whole site      */
+/* ------------------------------------------------------------------ */
+:root {
+  --ivory: #fff9f3;
+  --blush: #f6dce2;
+  --dusty-rose: #d99baa;
+  --burgundy: #703d4b;
+  --rose-gold: #b88670;
+  --champagne: #f3e6d5;
+  --ink: #47363a;
+
+  /* supporting tones derived from the palette */
+  --paper: #fffcf8;
+  --ink-soft: #6e5a5f; /* ≈6:1 on ivory — secondary copy */
+  --blush-deep: #edc3cd;
+  --rose-gold-deep: #8c5e4b; /* accessible rose gold for small text */
+  --burgundy-soft: #8a4d5e;
+}
+
+/* Expose the palette to Tailwind utilities (bg-blush, text-burgundy/70, …) */
+@theme inline {
+  --color-ivory: var(--ivory);
+  --color-blush: var(--blush);
+  --color-dusty-rose: var(--dusty-rose);
+  --color-burgundy: var(--burgundy);
+  --color-rose-gold: var(--rose-gold);
+  --color-champagne: var(--champagne);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-ink-soft: var(--ink-soft);
+  --color-blush-deep: var(--blush-deep);
+  --color-rose-gold-deep: var(--rose-gold-deep);
+  --color-burgundy-soft: var(--burgundy-soft);
+}
+
+@theme {
+  --font-sans: 'Jost', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-hand: 'Caveat', 'Bradley Hand', 'Segoe Print', cursive;
+
+  --shadow-card: 0 1px 2px rgb(71 54 58 / 0.06), 0 18px 40px -18px rgb(112 61 75 / 0.38);
+  --shadow-lifted: 0 2px 6px rgb(71 54 58 / 0.07), 0 34px 70px -30px rgb(112 61 75 / 0.5);
+  --shadow-soft: 0 1px 2px rgb(71 54 58 / 0.04), 0 22px 50px -26px rgb(112 61 75 / 0.34);
+  --shadow-glow: 0 14px 34px -10px rgb(112 61 75 / 0.6);
+
+  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Base                                                               */
+/* ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+    scrollbar-gutter: stable;
+    scrollbar-color: var(--blush-deep) transparent;
+    scrollbar-width: thin;
+  }
+
+  /* smooth anchor scrolling — only when the visitor hasn't asked for less motion */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    @apply bg-ivory font-sans text-ink antialiased;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--blush);
+    color: var(--burgundy);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--burgundy);
+    outline-offset: 3px;
+  }
+
+  /* custom scrollbar (WebKit/Blink fallback; Firefox & modern Chrome use scrollbar-color) */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--ivory);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--blush-deep);
+    border: 3px solid var(--ivory);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--dusty-rose);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Textures & ambient animation classes                               */
+/* ------------------------------------------------------------------ */
+@layer components {
+  /* film grain: one static, composited layer */
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 55;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .paper-texture {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(120% 70% at 50% 0%, rgb(255 255 255 / 0.9), transparent 60%),
+      radial-gradient(90% 60% at 100% 100%, rgb(243 230 213 / 0.55), transparent 70%),
+      radial-gradient(70% 50% at 0% 100%, rgb(246 220 226 / 0.45), transparent 70%);
+  }
+
+  .glow-orb {
+    animation: glow-pulse 9s ease-in-out infinite;
+  }
+  .glow-orb--slow {
+    animation-duration: 12s;
+    animation-delay: -4s;
+  }
+
+  .heart-ring {
+    border: 1px solid rgb(184 134 112 / 0.45);
+    animation: ring-out 3.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  .heart-ring--late {
+    animation-delay: 1.6s;
+  }
+
+  /* global drifting petals (positions are driven by Motion; these add sway + tumble) */
+  .petal-sway {
+    animation: petal-sway ease-in-out infinite alternate;
+  }
+  .petal-tumble {
+    animation: petal-tumble linear infinite;
+  }
+
+  /* section-local falling petals: pure CSS, sized against their container */
+  .petal-field {
+    container-type: size;
+  }
+  .local-petal {
+    position: absolute;
+    top: -40px;
+    opacity: 0;
+    animation: petal-drift linear infinite;
+  }
+
+  .wave-bar {
+    transform-origin: center;
+  }
+  .wave-bar.is-playing {
+    animation: wave 0.9s ease-in-out infinite alternate;
+  }
+
+  .shimmer {
+    animation: shimmer 3.4s ease-in-out infinite;
+  }
+
+  .ping-soft {
+    animation: ping-soft 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .tree-fall {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: tree-fall 8s linear infinite;
+  }
+
+  .leaf-sway {
+    transform-box: fill-box;
+    transform-origin: 50% 90%;
+    animation: leaf-sway ease-in-out infinite alternate;
+  }
+
+  .skeleton {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--blush) 75%, var(--ivory));
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.6) 50%, transparent 80%);
+    animation: skeleton 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes ring-out {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+
+@keyframes petal-sway {
+  0% {
+    transform: translateX(-14px) rotate(-16deg);
+  }
+  100% {
+    transform: translateX(14px) rotate(20deg);
+  }
+}
+
+@keyframes petal-tumble {
+  to {
+    transform: rotate3d(1, 0.35, 0.2, 360deg);
+  }
+}
+
+@keyframes petal-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--o, 0.7);
+  }
+  85% {
+    opacity: var(--o, 0.7);
+  }
+  100% {
+    transform: translate3d(var(--drift, 30px), calc(100cqh + 80px), 0) rotate(var(--spin, 240deg));
+    opacity: 0;
+  }
+}
+
+@keyframes wave {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.4);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  55%,
+  100% {
+    transform: translateX(400%) skewX(-20deg);
+  }
+}
+
+@keyframes ping-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+
+@keyframes tree-fall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.95;
+  }
+  80% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(var(--dx, 30px), 230px) rotate(var(--r, 220deg));
+    opacity: 0;
+  }
+}
+
+@keyframes leaf-sway {
+  from {
+    transform: rotate(-7deg);
+  }
+  to {
+    transform: rotate(7deg);
+  }
+}
+
+@keyframes skeleton {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Respect "reduce motion": loops settle on a still frame, transitions become instant. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
