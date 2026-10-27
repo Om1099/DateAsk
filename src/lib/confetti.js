@@ -1,6 +1,6 @@
 import confetti from 'canvas-confetti'
 
-const COLORS = ['#f9d3db', '#f4b8c5', '#ec98ab', '#e0bfb8', '#b76e79', '#f6c6b8', '#d4a373', '#ffffff']
+const COLORS = ['#f6dce2', '#efc6d0', '#d99baa', '#b88670', '#f3e6d5', '#703d4b', '#ffffff']
 
 let heartShape
 const getHeart = () =>
@@ -8,30 +8,31 @@ const getHeart = () =>
     path: 'M16 29C6 21 1 15 1 9.5 1 5 4.5 2 8.5 2c3 0 6 2 7.5 5 1.5-3 4.5-5 7.5-5 4 0 7.5 3 7.5 7.5C31 15 26 21 16 29z',
   }))
 
+// disableForReducedMotion: no confetti at all for visitors who asked for less motion
 const base = { colors: COLORS, disableForReducedMotion: true, zIndex: 120 }
 
-/** A layered celebration: a centre bloom, a shower of hearts, then side cannons. */
+/** A tasteful celebration: one soft bloom, a handful of hearts and two brief side flourishes. */
 export function celebrate() {
   const heart = getHeart()
 
-  confetti({ ...base, particleCount: 140, spread: 100, startVelocity: 48, origin: { y: 0.62 } })
+  confetti({ ...base, particleCount: 100, spread: 92, startVelocity: 40, origin: { y: 0.62 }, scalar: 0.95 })
   confetti({
     ...base,
-    particleCount: 40,
-    spread: 130,
-    startVelocity: 36,
-    origin: { y: 0.58 },
+    particleCount: 26,
+    spread: 120,
+    startVelocity: 30,
+    origin: { y: 0.6 },
     shapes: [heart],
-    scalar: 2.4,
-    ticks: 280,
+    scalar: 2.2,
+    ticks: 260,
     gravity: 0.7,
   })
 
-  const end = Date.now() + 2400
+  const end = Date.now() + 1200
   const frame = () => {
-    const opts = { ...base, particleCount: 3, spread: 65, startVelocity: 55, shapes: [heart, 'circle'], scalar: 1.4 }
-    confetti({ ...opts, angle: 60, origin: { x: 0, y: 0.8 } })
-    confetti({ ...opts, angle: 120, origin: { x: 1, y: 0.8 } })
+    const side = { ...base, particleCount: 2, spread: 58, startVelocity: 52, shapes: [heart, 'circle'], scalar: 1.25 }
+    confetti({ ...side, angle: 60, origin: { x: 0, y: 0.78 } })
+    confetti({ ...side, angle: 120, origin: { x: 1, y: 0.78 } })
     if (Date.now() < end) requestAnimationFrame(frame)
   }
   requestAnimationFrame(frame)

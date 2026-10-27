@@ -172,6 +172,11 @@
     animation: ping-soft 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
 
+  .glyph-beat {
+    transform-origin: 50% 60%;
+    animation: glyph-beat 2.4s ease-in-out 3s infinite;
+  }
+
   .tree-fall {
     transform-box: fill-box;
     transform-origin: center;
@@ -283,6 +288,20 @@
   100% {
     transform: scale(1.65);
     opacity: 0;
+  }
+}
+
+@keyframes glyph-beat {
+  0%,
+  28%,
+  100% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.14);
+  }
+  19% {
+    transform: scale(1.04);
   }
 }
 

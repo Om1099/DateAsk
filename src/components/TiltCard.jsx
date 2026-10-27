@@ -1,20 +1,24 @@
-import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion'
+import { motion, useMotionTemplate, useMotionValue, useSpring } from 'motion/react'
+import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
 import { cn } from '../lib/utils'
 
 const SPRING = { stiffness: 220, damping: 20, mass: 0.6 }
 
-/** Perspective tilt that follows the mouse, with a moving glare highlight. Touch input is ignored. */
-export function TiltCard({ children, max = 12, className }) {
+/** Perspective tilt + lift that follows the mouse, with a moving glare. Touch input is ignored. */
+export function TiltCard({ children, max = 10, className }) {
+  const reduce = useReducedMotionPreference()
   const rotateX = useSpring(0, SPRING)
   const rotateY = useSpring(0, SPRING)
   const scale = useSpring(1, SPRING)
   const glareX = useMotionValue(50)
   const glareY = useMotionValue(50)
   const glareOpacity = useSpring(0, SPRING)
-  const glare = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgb(255 255 255 / .55), transparent 55%)`
+  const glare = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgb(255 255 255 / .5), transparent 55%)`
+
+  const isMouse = (e) => !reduce && e.pointerType === 'mouse'
 
   const onPointerMove = (e) => {
-    if (e.pointerType !== 'mouse') return
+    if (!isMouse(e)) return
     const rect = e.currentTarget.getBoundingClientRect()
     const px = (e.clientX - rect.left) / rect.width
     const py = (e.clientY - rect.top) / rect.height
@@ -25,8 +29,8 @@ export function TiltCard({ children, max = 12, className }) {
   }
 
   const onPointerEnter = (e) => {
-    if (e.pointerType !== 'mouse') return
-    scale.set(1.05)
+    if (!isMouse(e)) return
+    scale.set(1.04)
     glareOpacity.set(1)
   }
 
@@ -48,7 +52,7 @@ export function TiltCard({ children, max = 12, className }) {
       {children}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-0 mix-blend-soft-light"
+        className="pointer-events-none absolute inset-0 rounded-[16px] mix-blend-soft-light"
         style={{ background: glare, opacity: glareOpacity }}
       />
     </motion.div>
