@@ -60,7 +60,7 @@ export const proposal = {
   day: proposedUpcoming ? formatOrdinalDayMonth(config.proposedDate) : '', // "5th November"
   full: proposedUpcoming ? formatFullDate(config.proposedDate) : '', // "Thursday, 5 November 2026"
   label: proposedUpcoming
-    ? firstFilled(config.proposedDateLabel) || `${formatOrdinalDayMonth(config.proposedDate)} ${config.proposedDate.slice(0, 4)}`
+    ? firstFilled(config.proposedDateLabel) || `${formatOrdinalDayMonth(config.proposedDate)} ${config.proposedDate.slice(0, 4)}`
     : '',
 }
 
@@ -97,5 +97,7 @@ export function fill(text = '') {
       .replace(/,\s*\{her\}(?=[,.…!?])/g, '')
   }
   s = s.replace(/\{her\}/g, names.her || 'you').replace(/\{(\w+)\}/g, (match, key) => (TOKENS[key] ? TOKENS[key]() : match))
+  // keep a trailing emoji / symbol ("😂❤️", "♡") attached to the last word so it never wraps alone
+  s = s.replace(/ ([^\p{L}\p{N}\s]{1,12})$/u, ' $1')
   return curlyApostrophes(s)
 }

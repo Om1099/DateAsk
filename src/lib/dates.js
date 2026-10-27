@@ -33,14 +33,18 @@ const compose = (iso, build) => {
   return date ? build(date, MONTH.format(date), WEEKDAY.format(date)) : ''
 }
 
+// Non-breaking spaces keep "5 November 2026" together on one line; only "Thursday," may wrap.
+const NB = ' '
+
 /** "9 October" */
-export const formatDayMonth = (iso) => compose(iso, (d, month) => `${d.getDate()} ${month}`)
+export const formatDayMonth = (iso) => compose(iso, (d, month) => `${d.getDate()}${NB}${month}`)
 /** "9th October" */
-export const formatOrdinalDayMonth = (iso) => compose(iso, (d, month) => `${ordinal(d.getDate())} ${month}`)
+export const formatOrdinalDayMonth = (iso) => compose(iso, (d, month) => `${ordinal(d.getDate())}${NB}${month}`)
 /** "Thursday, 5 November" */
-export const formatLongDate = (iso) => compose(iso, (d, month, weekday) => `${weekday}, ${d.getDate()} ${month}`)
+export const formatLongDate = (iso) => compose(iso, (d, month, weekday) => `${weekday}, ${d.getDate()}${NB}${month}`)
 /** "Thursday, 5 November 2026" */
-export const formatFullDate = (iso) => compose(iso, (d, month, weekday) => `${weekday}, ${d.getDate()} ${month} ${d.getFullYear()}`)
+export const formatFullDate = (iso) =>
+  compose(iso, (d, month, weekday) => `${weekday}, ${d.getDate()}${NB}${month}${NB}${d.getFullYear()}`)
 
 /** Today's date as a local YYYY-MM-DD string (the date picker's minimum). */
 export function todayISO(now = new Date()) {

@@ -96,7 +96,7 @@ export function HeroSection({ focusOnMount = false }) {
       <motion.div style={reduce ? undefined : { y, scale, opacity }} className="relative z-10 flex w-full max-w-4xl flex-col items-center text-center">
         <motion.p
           {...fadeUp(at(0.2))}
-          className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-paper/70 px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.3em] text-burgundy sm:mb-7 sm:text-[11px]"
+          className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-gold/30 bg-paper/70 px-4 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-burgundy sm:mb-7 sm:text-[11px] sm:tracking-[0.3em]"
         >
           <Sparkles aria-hidden className="h-3 w-3" />
           {fill(hero.eyebrow)}
