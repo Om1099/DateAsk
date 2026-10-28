@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useMotionValue, useTransform } from 'motion/re
 import { Mic, Pause, Play } from 'lucide-react'
 import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
 import { clamp, cn, formatTime, mulberry32 } from '../lib/utils'
+import { useMusic } from './BackgroundMusic'
 
 const BAR_COUNT = 46
 
@@ -46,6 +47,10 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
   const clipPath = useTransform(progress, (p) => `inset(0 ${(1 - p) * 100}% 0 0)`)
   const knobLeft = useTransform(progress, (p) => `${p * 100}%`)
   const ready = status === 'ready'
+
+  // the background music steps aside while she listens, and comes back afterwards
+  const { hold: holdMusic, release: releaseMusic } = useMusic()
+  useEffect(() => () => releaseMusic('voice'), [releaseMusic])
 
   // Is the file really there? Hosts with SPA fallbacks answer missing files with HTML, not audio.
   useEffect(() => {
@@ -159,16 +164,24 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
             if (Number.isFinite(d)) setDuration(d)
           }}
           onTimeUpdate={(e) => setElapsed(Math.floor(e.currentTarget.currentTime))}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
+          onPlay={() => {
+            setPlaying(true)
+            holdMusic('voice')
+          }}
+          onPause={() => {
+            setPlaying(false)
+            releaseMusic('voice')
+          }}
           onEnded={(e) => {
             setPlaying(false)
+            releaseMusic('voice')
             e.currentTarget.currentTime = 0
             progress.set(0)
             setElapsed(0)
           }}
           onError={() => {
             setPlaying(false)
+            releaseMusic('voice')
             setStatus('missing')
           }}
         />

@@ -88,6 +88,21 @@ Your photos live in `public/photos/` and are listed in `romanticConfig.js` as `'
 
 Save your recording as **`public/audio/voice-note.mp3`** (more tips in `public/audio/README.md`). The player then shows the real duration and plays only when she presses play. Until the file exists, the button stays disabled and she sees: "The voice note hasn't been added yet — your boring boy is still practising what to say ♡".
 
+### Background music
+
+`public/audio/medley_web_192k.mp3` plays softly under the whole page. Its settings are `music` in `romanticConfig.js`.
+
+- **It never starts by itself.** It begins when she taps **Open your second little surprise ♡**, which has a small "♫ best with sound on" line under it. It also starts from the **♫ Play our song** button that appears bottom-right once she scrolls.
+- **The little player** has play/pause with a progress ring, the title and time on wider screens, and mute.
+- **It steps aside** while the voice note plays and when she switches tabs, then comes back.
+- **Story cues:** while the music is playing:
+  - it swells into the medley's third part (`cues.question`, 1:51) as the big question appears
+  - it moves to the final part (`cues.yes`, 3:18) when she says yes
+
+  Both times come from the track's own breaks (a quiet dip at 1:50, a cut at 3:18). Move them, or set them to `null`, if they don't land where you want.
+- `volume` (0–1) sets how loudly it sits under the page. Set `src: ''` to turn the music off.
+- **Licensing:** the medley contains commercial film-song recordings; its first part is "Itni Si Baat Hain". A public GitHub repo, or any public site, redistributes it. Keep the repository private, or make sure you have the rights, before pushing it.
+
 ## Her answers & privacy
 
 - **No tracking, analytics, accounts or form submissions.** Nothing she clicks or types leaves her device, and the page never claims to have sent anything.

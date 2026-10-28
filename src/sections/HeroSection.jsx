@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform } from 'motion/react'
-import { Gift, Sparkles } from 'lucide-react'
+import { Gift, Music, Sparkles } from 'lucide-react'
 import { config, fill } from '../data'
+import { useMusic } from '../components/BackgroundMusic'
 import { Button } from '../components/Button'
 import { Heart3D } from '../components/Heart3D'
 import { Magnetic } from '../components/Magnetic'
@@ -79,6 +80,14 @@ export function HeroSection({ focusOnMount = false }) {
 
   const goNext = () => scrollToSection('#intro')
 
+  // the opening button is her first tap — the music begins with it, never before
+  const { start: startMusic, enabled: hasMusic } = useMusic()
+  const soundHint = hasMusic ? fill(config.music?.soundHint ?? '') : ''
+  const openSurprise = () => {
+    startMusic()
+    goNext()
+  }
+
   // after "Replay my little surprise", bring keyboard focus back to the top
   useEffect(() => {
     if (focusOnMount) headingRef.current?.focus({ preventScroll: true })
@@ -89,7 +98,7 @@ export function HeroSection({ focusOnMount = false }) {
       id="top"
       ref={ref}
       aria-labelledby="hero-title"
-      className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-6 pb-24 pt-12 sm:pb-28 sm:pt-16"
+      className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-6 pb-28 pt-12 sm:pb-36 sm:pt-16"
     >
       <HeroBackdrop />
 
@@ -134,12 +143,18 @@ export function HeroSection({ focusOnMount = false }) {
           {fill(hero.revealFollowUp)}
         </motion.p>
 
-        <motion.div {...fadeUp(at(3.8))} className="mt-8 sm:mt-10">
+        <motion.div {...fadeUp(at(3.8))} className="mt-8 flex flex-col items-center sm:mt-10">
           <Magnetic>
-            <Button size="lg" shimmer icon={<Gift className="h-5 w-5" />} onClick={goNext}>
+            <Button size="lg" shimmer icon={<Gift className="h-5 w-5" />} onClick={openSurprise}>
               {fill(hero.cta)}
             </Button>
           </Magnetic>
+          {soundHint && (
+            <p className="mt-3.5 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.3em] text-ink-soft">
+              <Music aria-hidden className="h-3 w-3" />
+              {soundHint}
+            </p>
+          )}
         </motion.div>
       </motion.div>
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useInView } from 'motion/react'
 import { CalendarHeart, Heart, RotateCcw } from 'lucide-react'
 import { config, fill, proposal } from '../data'
+import { useMusic } from '../components/BackgroundMusic'
 import { Button } from '../components/Button'
 import { DatePreferencePanel } from '../components/DatePreferencePanel'
 import { FloatingHearts } from '../components/FloatingHearts'
@@ -350,9 +351,18 @@ export function DateInvitation({ answer, onAnswer, plan, onPlanChange, onReplay 
 
   useEffect(() => () => clearTimeout(heartsTimer.current), [])
 
+  // if the music is playing, it swells into its big part as the question appears, and lifts into its last part with her yes
+  const { cue } = useMusic()
+  const answerRef = useRef(answer)
+  answerRef.current = answer
+  useEffect(() => {
+    if (inView) cue(answerRef.current === 'yes' ? 'yes' : 'question')
+  }, [inView, cue])
+
   const sayYes = () => {
     onAnswer('yes')
     setFresh(true)
+    cue('yes')
     celebrate()
     setHearts(true)
     clearTimeout(heartsTimer.current)

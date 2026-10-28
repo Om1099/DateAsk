@@ -160,6 +160,12 @@
   .wave-bar {
     transform-origin: center;
   }
+
+  /* the little dancing bars on the music player */
+  .eq-bar {
+    transform-origin: bottom;
+    animation: eq 0.85s ease-in-out infinite alternate;
+  }
   .wave-bar.is-playing {
     animation: wave 0.9s ease-in-out infinite alternate;
   }
@@ -293,6 +299,15 @@
   }
   to {
     transform: scaleY(0.4);
+  }
+}
+
+@keyframes eq {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.3);
   }
 }
 

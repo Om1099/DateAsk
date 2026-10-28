@@ -30,6 +30,19 @@ export const defaults = {
   time: '',
   photoMode: 'romantic placeholders',
   audioPath: '/audio/voice-note.mp3',
+  music: {
+    src: '', // no background music unless romanticConfig.js sets a file
+    title: 'Our Song',
+    volume: 0.45,
+    soundHint: 'best with sound on',
+    cues: { question: null, yes: null },
+    inviteLabel: 'Play our song',
+    playLabel: 'Play the music',
+    pauseLabel: 'Pause the music',
+    muteLabel: 'Mute the music',
+    loadingLabel: 'The music is loading',
+    errorMessage: 'The music couldn’t load — everything else works just the same ♡',
+  },
   signatureLine: '',
   rememberChoices: false,
 

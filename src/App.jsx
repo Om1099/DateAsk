@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { MotionConfig } from 'motion/react'
 import { remember } from './data'
+import { MusicControl, MusicProvider } from './components/BackgroundMusic'
 import { CursorGlow } from './components/CursorGlow'
 import { Divider } from './components/Divider'
 import { FloatingPetals } from './components/FloatingPetals'
@@ -42,25 +43,29 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <ScrollProgress />
-      <FloatingPetals />
-      <CursorGlow />
-      <div aria-hidden className="grain" />
+      {/* the music lives outside <main>, so replaying the story doesn't restart the song */}
+      <MusicProvider>
+        <ScrollProgress />
+        <FloatingPetals />
+        <CursorGlow />
+        <div aria-hidden className="grain" />
 
-      {/* Sections are independent — reorder, remove or add freely. */}
-      <main key={storyKey} className="relative z-10">
-        <HeroSection focusOnMount={storyKey > 0} />
-        <IntroSection />
-        <MemoryGallery />
-        <BloomingTree />
-        <Divider />
-        <LoveLetter />
-        <VoiceNoteSection />
-        <WardrobeInvestigation outfit={outfit} onOutfitChange={setOutfit} />
-        <DateInvitation answer={answer} onAnswer={setAnswer} plan={plan} onPlanChange={setPlan} onReplay={replay} />
-      </main>
+        {/* Sections are independent — reorder, remove or add freely. */}
+        <main key={storyKey} className="relative z-10">
+          <HeroSection focusOnMount={storyKey > 0} />
+          <IntroSection />
+          <MemoryGallery />
+          <BloomingTree />
+          <Divider />
+          <LoveLetter />
+          <VoiceNoteSection />
+          <WardrobeInvestigation outfit={outfit} onOutfitChange={setOutfit} />
+          <DateInvitation answer={answer} onAnswer={setAnswer} plan={plan} onPlanChange={setPlan} onReplay={replay} />
+        </main>
 
-      <Footer onReplay={replay} onClear={clearSaved} hasSaved={Boolean(answer || outfit || plan)} />
+        <Footer onReplay={replay} onClear={clearSaved} hasSaved={Boolean(answer || outfit || plan)} />
+        <MusicControl />
+      </MusicProvider>
     </MotionConfig>
   )
 }

@@ -52,6 +52,20 @@ export const romanticConfig = {
 
   photoMode: 'our own photos', // notes for future edits — the gallery shows the photos listed below
   audioPath: '/audio/voice-note.mp3', // ✏️ see public/audio/README.md
+
+  // ── Background music ───────────────────────────────────────────────────
+  // It never starts on its own: only when she taps "Open your second little surprise" or the little ♫ button.
+  // It pauses while the voice note plays, and when she switches to another tab.
+  music: {
+    src: '/audio/medley_web_192k.mp3', // ✏️ '' turns the music off
+    title: 'Our Song', // ✏️ shown on the little player
+    volume: 0.45, // ✏️ 0–1 · the medley is mastered loud, so it sits softly under the page
+    soundHint: 'best with sound on', // ✏️ the small line under the opening button
+    // ✏️ Story cues, in seconds — or null to let the music simply play on.
+    //    Measured from the medley's own breaks: at 111 s (1:51) the third part swells back in after a quiet
+    //    moment, so it rises as the big question appears; at 198.3 s (3:18) the final part begins, for her "yes".
+    cues: { question: 111, yes: 198.3 },
+  },
   signatureLine: 'Every moment with you is my new favourite memory.', // ✏️ shown in the footer
 
   // ✏️ false (default): her answers live only in the open page and are forgotten on reload.
@@ -103,8 +117,8 @@ export const romanticConfig = {
     hintPointer: 'hover to tilt · click to look closer',
     hintTouch: 'tap a photo to look closer',
     // ✏️ Your couple photos, in the order they're shown: one column on phones, rows of three on a laptop.
-    //    The order tells a little story — playful → festive → the hug at the heart (5th, centre of the grid)
-    //    → everyday & tender → your best-smiles photo as the finale. Edit the words freely.
+    //    The order tells a little story — playful moments → the hug at the heart (5th, the centre of the grid)
+    //    → tender ones → your best-smiles photo as the finale; no two captions in a row say "favourite".
     photos: [
       {
         src: '/photos/c5.jpeg',
@@ -114,11 +128,11 @@ export const romanticConfig = {
         caption: 'That pout wins every argument. 😙',
       },
       {
-        src: '/photos/c4.jpeg',
-        focus: '50% 50%',
-        alt: '{herName} striking a pose, one hand in her hair, while {myName} laughs beside her at a garba night',
-        mood: 'garba night',
-        caption: 'You posed. I couldn’t stop smiling at you.',
+        src: '/photos/c6.jpeg',
+        focus: '50% 55%',
+        alt: '{myName} leaning his head against {herName}’s as she laughs, by a railing under the city lights',
+        mood: 'city lights',
+        caption: 'Making you laugh is my favourite hobby.',
       },
       {
         src: '/photos/C1.jpeg',
@@ -149,11 +163,11 @@ export const romanticConfig = {
         caption: 'Ordinary days are better with you.',
       },
       {
-        src: '/photos/c6.jpeg',
-        focus: '50% 55%',
-        alt: '{myName} leaning his head against {herName}’s as she laughs, by a railing under the city lights',
-        mood: 'city lights',
-        caption: 'Making you laugh is my favourite hobby.',
+        src: '/photos/c4.jpeg',
+        focus: '50% 50%',
+        alt: '{herName} striking a pose, one hand in her hair, while {myName} laughs beside her at a garba night',
+        mood: 'garba night',
+        caption: 'You posed. I couldn’t stop smiling at you.',
       },
       {
         src: '/photos/c8.jpeg',
