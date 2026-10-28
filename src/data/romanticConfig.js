@@ -26,7 +26,7 @@ export const romanticConfig = {
   herNickname: 'Jinudi', // ✏️ the name used most of the time
   alternateNicknames: ['Mari Janvi', 'Maru Galudiyu', 'Mari Bakudi'], // ✏️ shown in the "a.k.a." line of the note
   myName: 'Om', // ✏️
-  myNickname: 'Mari Bakudi', // ✏️ used on the envelope and to sign the letter
+  myNickname: 'Taro workaholic Premi', // ✏️ used on the envelope and to sign the letter
 
   vibe: ['cute', 'playful', 'flirty', 'romantic'], // notes for future edits
   visualStyle: 'premium romantic editorial',

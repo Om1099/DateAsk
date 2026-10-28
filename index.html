@@ -16,5 +16,25 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!--
+      If the app can't start — e.g. opened with VS Code's "Go Live" or by double-clicking index.html, which can't run
+      the React source — say so kindly instead of leaving a blank page. On the real site the app is up long before this.
+    -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+          var root = document.getElementById('root')
+          if (!root || root.childElementCount) return
+          root.innerHTML =
+            '<div style="min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:#fff9f3;color:#47363a;font:17px/1.6 Georgia,serif;text-align:center">' +
+            '<div style="max-width:30rem"><div style="font-size:42px;line-height:1;color:#703d4b">&#9825;</div>' +
+            '<h1 style="margin:14px 0 10px;font-weight:400;font-size:30px;color:#703d4b">Almost there&hellip;</h1>' +
+            '<p style="margin:0 0 18px">Something kept this little page from starting.</p>' +
+            '<p style="margin:0;font:14px/1.7 system-ui,sans-serif;color:#6e5a5f">If you made it: VS Code&rsquo;s &ldquo;Go Live&rdquo; and double-clicking ' +
+            '<code>index.html</code> can&rsquo;t run it. Open a terminal in the project, run <code style="background:#f6dce2;padding:2px 6px;border-radius:6px">npm run dev</code> ' +
+            'and open <a style="color:#703d4b" href="http://localhost:5173/">http://localhost:5173/</a></p></div></div>'
+        }, 2500)
+      })
+    </script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 # DateAsk — the second official date invitation
 
-A private, scroll-driven date invitation from Om ("Mari Bakudi") to Janvi ("Jinudi"). The first plan, 9 October 2026, was cancelled when work sent Om to Pune and Hyderabad. This is round two: a fresh invitation for **Thursday, 5 November 2026**.
+A private, scroll-driven date invitation from Om ("Taro workaholic Premi") to Janvi ("Jinudi"). The first plan, 9 October 2026, was cancelled when work sent Om to Pune and Hyderabad. This is round two: a fresh invitation for **Thursday, 5 November 2026**.
 
 It's built with **React 19 + Vite**, **Tailwind CSS 4**, **Motion** (Framer Motion), **Lucide** icons and **canvas-confetti**.
 
@@ -11,6 +11,8 @@ npm run build     # production build in /dist
 npm run preview   # serve the production build locally
 ```
 
+Preview it with `npm run dev`, not VS Code's "Go Live" button or by double-clicking `index.html`. Those can't run the React source, so the page shows an "Almost there…" note instead.
+
 ## The journey
 
 *A cancelled plan → a playful comeback → a personal romantic surprise → a fresh invitation for 5 November.*
@@ -19,7 +21,7 @@ npm run preview   # serve the production build locally
 2. **Round two, my favourite girl.** A paper memo (To / From / Re) with her nicknames. The note acknowledges the cancelled plan briefly and moves on to the new ask.
 3. **Our little world.** Nine of your couple photos as overlapping polaroids with tilt, each cropped around your faces. Tapping one opens the whole, uncropped photo in a lightbox.
 4. **The heart tree.** An original SVG. The trunk draws itself, branches follow, and heart leaves bloom into a heart-shaped canopy.
-5. **The letter.** A wax-sealed envelope that opens and can be closed and reopened. It's signed "Mari Bakudi ♡".
+5. **The letter.** A wax-sealed envelope that opens and can be closed and reopened. It's signed "Taro workaholic Premi ♡".
 6. **The voice note.** A custom player around a real `<audio>` element. It never autoplays.
 7. **The official date investigation: Round Two 👗.** The case file shows:
    - previous date: struck through, *cancelled due to company work*
@@ -38,7 +40,7 @@ Everything personal lives in **one file**, and fields marked ✏️ are meant to
 | Setting | What it does |
 | --- | --- |
 | `herName`, `herNickname`, `alternateNicknames` | Janvi / Jinudi / the "a.k.a." list in the note |
-| `myName`, `myNickname` | Om / Mari Bakudi (envelope, letter signature, "Om's suggestion") |
+| `myName`, `myNickname` | Om / Taro workaholic Premi (envelope, letter signature, "Om's suggestion") |
 | `originalDate`, `originalDateStatus`, `originalDateStatusLabels` | The first plan (9 October) and why it didn't happen ("Cancelled due to company work"). It's only ever mentioned in the past tense. |
 | `workTravelContext` | `['Pune', 'Hyderabad']`, which fills `{cities}` ("Pune and Hyderabad") and `{cityList}` ("Pune, Hyderabad") |
 | `proposedDate`, `proposedDateLabel` | The new date (`'2026-11-05'`) and how it's written in running text ("5th November 2026"). Set `null` to leave it undecided. |
@@ -52,7 +54,7 @@ Everything personal lives in **one file**, and fields marked ✏️ are meant to
 | Placeholder | Filled with |
 | --- | --- |
 | `{her}`, `{herName}` | Jinudi, Janvi |
-| `{me}`, `{myName}` | Mari Bakudi, Om |
+| `{me}`, `{myName}` | Taro workaholic Premi, Om |
 | `{originalDate}`, `{originalDay}`, `{originalStatus}` | "9 October", "9th October", "Cancelled due to company work" |
 | `{proposedDate}`, `{proposedDay}` | "5 November", "5th November" |
 | `{proposedFullDate}`, `{proposedDateLabel}` | "Thursday, 5 November 2026", "5th November 2026" |
@@ -76,7 +78,7 @@ Your photos live in `public/photos/` and are listed in `romanticConfig.js` as `'
 | Wardrobe case file, "Exhibit A" | `wardrobe.exhibit` | `s1`, her solo photo |
 | The big question, "then → next" | `invitation.firstDate` | `d1`, your first date |
 
-- **File names must match exactly, including upper/lower case.** Windows doesn't mind, but the live site does: `C1.jpeg` and `c1.jpeg` are different files there. All names are lowercase now.
+- **File names must match exactly, including upper/lower case.** Windows doesn't mind, but the live site does: `C1.jpeg` and `c1.jpeg` are different files there. `C1` and `C2` are uppercase and the rest are lowercase, exactly as committed. To rename one, use `git mv` so git notices a case-only change.
 - `focus` sets where each crop centres (`'50% 20%'` = middle, near the top), so faces stay in frame. The full photo is shown when she opens it.
 - Each photo has a `caption`, a small `mood` label and `alt` text (read aloud by screen readers). Edit any of them freely.
 - To hide Exhibit A or the then → next pair, delete that block. The rest of the page carries on as before.

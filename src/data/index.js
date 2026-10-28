@@ -24,7 +24,7 @@ const firstFilled = (...values) => values.map((v) => (typeof v === 'string' ? v.
 export const names = {
   her: firstFilled(config.herNickname, config.herName), // "Jinudi"
   herName: firstFilled(config.herName, config.herNickname), // "Janvi"
-  me: firstFilled(config.myNickname, config.myName), // "Mari Bakudi"
+  me: firstFilled(config.myNickname, config.myName), // "Taro workaholic Premi"
   myName: firstFilled(config.myName, config.myNickname), // "Om"
 }
 
