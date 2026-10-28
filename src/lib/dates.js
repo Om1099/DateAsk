@@ -46,6 +46,10 @@ export const formatLongDate = (iso) => compose(iso, (d, month, weekday) => `${we
 export const formatFullDate = (iso) =>
   compose(iso, (d, month, weekday) => `${weekday}, ${d.getDate()}${NB}${month}${NB}${d.getFullYear()}`)
 
+/** { day: '5', month: 'November', weekday: 'Thursday' } — for a calendar-style tile. null if invalid. */
+export const formatDateParts = (iso) =>
+  compose(iso, (d, month, weekday) => ({ day: String(d.getDate()), month, weekday })) || null
+
 /** Today's date as a local YYYY-MM-DD string (the date picker's minimum). */
 export function todayISO(now = new Date()) {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`

@@ -6,10 +6,11 @@ import { Button } from '../components/Button'
 import { HeartText } from '../components/HeartText'
 import { OutfitArt } from '../components/OutfitArt'
 import { ParallaxWord } from '../components/ParallaxWord'
+import { Photo } from '../components/Photo'
 import { SectionReveal } from '../components/SectionReveal'
 import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
 import { scrollToSection } from '../lib/scroll'
-import { EASE_SILK, cn } from '../lib/utils'
+import { EASE_SILK, cn, withBase } from '../lib/utils'
 
 /*
  * G · The official date investigation, round two.
@@ -197,6 +198,46 @@ function Stamp({ lines, delay, reduce }) {
   )
 }
 
+/** A little paper clip holding Exhibit A to the file. */
+function PaperClip({ className }) {
+  return (
+    <svg viewBox="0 0 16 42" fill="none" aria-hidden className={className}>
+      <path d="M10.5 13v17.5a4 4 0 0 1-8 0V8a5.5 5.5 0 0 1 11 0v21" stroke="#9c7c70" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** Exhibit A — her photo, clipped into the file once the review is done. */
+function Exhibit({ exhibit, show, delay, reduce }) {
+  const from = reduce ? -4 : -13
+  return (
+    <motion.figure
+      className="relative mt-2 flex items-center gap-5 border-t border-dashed border-rose-gold/25 pt-8 sm:gap-8"
+      initial={{ opacity: 0, y: 16 }}
+      animate={show ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+      transition={{ duration: 0.8, ease: EASE_SILK, delay }}
+    >
+      <motion.div
+        className="relative w-[7.25rem] shrink-0 rounded-[12px] bg-paper p-2 pb-2.5 shadow-card sm:w-40 sm:p-2.5 sm:pb-3"
+        initial={{ rotate: from }}
+        animate={{ rotate: show ? -4 : from }}
+        transition={{ type: 'spring', stiffness: 90, damping: 13, delay }}
+      >
+        <Photo src={withBase(exhibit.photo)} alt={fill(exhibit.alt)} position={exhibit.focus} className="aspect-square w-full rounded-[8px]" />
+        <span className="mt-1.5 block text-center font-hand text-lg leading-none text-ink sm:text-xl">{fill(exhibit.tag)}</span>
+        <PaperClip className="absolute -top-4 left-4 h-11 w-4 rotate-[6deg] drop-shadow-[0_1px_1px_rgb(71_54_58/0.25)]" />
+      </motion.div>
+      <figcaption className="min-w-0">
+        <span className="block text-[10px] font-medium uppercase tracking-[0.26em] text-burgundy">{fill(exhibit.label)}</span>
+        <span className="mt-1.5 block text-balance font-display text-xl italic leading-snug text-ink sm:text-2xl">{fill(exhibit.title)}</span>
+        <span className="mt-2 block text-pretty font-hand text-[1.3rem] leading-snug text-rose-gold-deep sm:text-[1.5rem]">
+          {fill(exhibit.finding)}
+        </span>
+      </figcaption>
+    </motion.figure>
+  )
+}
+
 function CaseFile({ chosen }) {
   const ref = useRef(null)
   const reduce = useReducedMotionPreference()
@@ -205,9 +246,11 @@ function CaseFile({ chosen }) {
   const concluded = Boolean(chosen)
   const outfitLabel = chosen ? fill(chosen.label).replace(/\.$/, '') : ''
   const stampLines = (Array.isArray(w.stamp) ? w.stamp : [w.stamp]).filter(Boolean)
+  const exhibit = w.exhibit?.photo ? w.exhibit : null
   const rows = w.status.map((row) =>
     row.id === 'venue' && config.venueMode === 'revealed' && config.venue ? { ...row, kind: 'plain', value: config.venue } : row,
   )
+  const reviewedAt = rows.length * ROW_STEP // when the last row has been looked at
 
   return (
     <motion.article
@@ -239,8 +282,9 @@ function CaseFile({ chosen }) {
           />
         ))}
       </dl>
+      {exhibit && <Exhibit exhibit={exhibit} show={started} delay={reduce ? 0 : reviewedAt + 0.5} reduce={reduce} />}
       {started && stampLines.length > 0 && (
-        <Stamp lines={stampLines} delay={reduce ? 0 : rows.length * ROW_STEP + 1.1} reduce={reduce} />
+        <Stamp lines={stampLines} delay={reduce ? 0 : reviewedAt + (exhibit ? 1.8 : 1.1)} reduce={reduce} />
       )}
     </motion.article>
   )

@@ -6,16 +6,105 @@ import { Button } from '../components/Button'
 import { DatePreferencePanel } from '../components/DatePreferencePanel'
 import { FloatingHearts } from '../components/FloatingHearts'
 import { LocalPetals } from '../components/FloatingPetals'
+import { HeartGlyph, HeartText } from '../components/HeartText'
 import { Magnetic } from '../components/Magnetic'
+import { Photo } from '../components/Photo'
 import { SplitText } from '../components/SplitText'
 import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
 import { celebrate } from '../lib/confetti'
 import { describePlan } from '../lib/plan'
-import { EASE_SILK } from '../lib/utils'
+import { EASE_SILK, cn, withBase } from '../lib/utils'
 
 const stage = {
   hidden: { opacity: 0, y: 22 },
   show: (delay = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.9, ease: EASE_SILK, delay } }),
+}
+
+const firstDate = config.invitation.firstDate?.photo ? config.invitation.firstDate : null
+
+const FRAME = 'w-[42%] max-w-[11.5rem] shrink-0 rounded-[14px] bg-paper p-2 pb-3 shadow-card sm:p-2.5 sm:pb-3.5'
+const FRAME_LABEL = 'block text-[9px] font-medium uppercase tracking-[0.3em] text-burgundy/85'
+const FRAME_CAPTION = 'mt-0.5 block text-balance font-hand text-[1.15rem] leading-[1.1] text-ink sm:text-[1.35rem]'
+
+/**
+ * "then → next": the first-date photo, a dotted arrow, and an empty frame saved for the new date.
+ * With `stamped` (after her yes) an "approved" stamp lands on the empty frame.
+ */
+function FirstDatePair({ play, delay = 0, stamped = false, className }) {
+  const reduce = useReducedMotionPreference()
+  if (!firstDate) return null
+  const fd = firstDate
+  const parts = proposal.upcoming ? proposal.parts : null
+
+  // each frame is "placed" on the table: it drops in tilted a little too far, then settles
+  const placed = (at, rotate) => {
+    const away = { opacity: 0, y: 26, rotate: reduce ? rotate : rotate * 3 }
+    return {
+      initial: away,
+      animate: play ? { opacity: 1, y: 0, rotate } : away,
+      transition: { type: 'spring', stiffness: 80, damping: 15, delay: at },
+    }
+  }
+  const stampAt = delay + (reduce ? 0.2 : 1.15)
+
+  return (
+    <div className={cn('relative mx-auto flex max-w-[26rem] items-center justify-center gap-1.5 sm:gap-4', className)}>
+      <motion.figure {...placed(delay, -4)} className={FRAME}>
+        <Photo src={withBase(fd.photo)} alt={fill(fd.alt)} position={fd.focus} className="aspect-[4/5] w-full rounded-[9px]" />
+        <figcaption className="mt-2 text-center">
+          <span className={FRAME_LABEL}>{fill(fd.label)}</span>
+          <span className={FRAME_CAPTION}>{fill(fd.caption)}</span>
+        </figcaption>
+      </motion.figure>
+
+      <motion.svg
+        viewBox="0 0 48 26"
+        fill="none"
+        aria-hidden
+        className="w-9 shrink-0 text-rose-gold sm:w-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: play ? 1 : 0 }}
+        transition={{ duration: 0.6, delay: delay + 0.3 }}
+      >
+        <path d="M4 17c9-9 24-11 37-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeDasharray="2.5 4" />
+        <path d="M41 12l-6.5-1.6M41 12l-3.4 5.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </motion.svg>
+
+      <motion.figure {...placed(delay + 0.45, 3)} className={FRAME}>
+        <div className="relative grid aspect-[4/5] w-full place-items-center overflow-hidden rounded-[9px] border border-dashed border-rose-gold/60 bg-[linear-gradient(160deg,var(--blush),var(--champagne))] px-2 text-center">
+          <p>
+            <span className={FRAME_LABEL}>{fill(fd.reservedLabel)}</span>
+            {parts ? (
+              <>
+                <span className="mt-1.5 block font-display text-[clamp(2.6rem,10vw,3.4rem)] font-light leading-[0.9] text-burgundy">{parts.day}</span>
+                <span className="mt-0.5 block font-display text-lg italic leading-tight text-ink sm:text-xl">{parts.month}</span>
+              </>
+            ) : (
+              <span className="mt-1.5 block text-balance font-display text-lg italic leading-tight text-ink sm:text-xl">{fill(fd.reservedNoDate)}</span>
+            )}
+            {/* the stamp lands where the little heart sits, so the date itself stays readable */}
+            <span aria-hidden className={cn('mt-2 block text-lg', stamped && 'invisible')}>
+              <HeartGlyph />
+            </span>
+          </p>
+          {stamped && (
+            <motion.span
+              className="absolute inset-x-0 bottom-[9%] mx-auto h-fit w-fit whitespace-nowrap rounded-md border-[3px] border-double border-burgundy/80 bg-paper/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-burgundy shadow-sm sm:text-xs"
+              initial={reduce ? { opacity: 0, rotate: -10 } : { opacity: 0, scale: 1.9, rotate: -18 }}
+              animate={play ? { opacity: 1, scale: 1, rotate: -10 } : undefined}
+              transition={reduce ? { duration: 0.2, delay: stampAt } : { type: 'spring', stiffness: 420, damping: 22, delay: stampAt }}
+            >
+              <HeartText text={fill(fd.stamp)} current />
+            </motion.span>
+          )}
+        </div>
+        <figcaption className="mt-2 text-center">
+          <span className={FRAME_LABEL}>{fill(fd.nextLabel)}</span>
+          <span className={FRAME_CAPTION}>{fill(stamped ? fd.nextCaptionYes : fd.nextCaption)}</span>
+        </figcaption>
+      </motion.figure>
+    </div>
+  )
 }
 
 /** Warm rose-pink gradient with slow glowing highlights. */
@@ -71,7 +160,7 @@ function InvitationCard({ reveal }) {
   )
 }
 
-/** The question, revealed in paced stages: lead → teases → the question → message → card → choices. */
+/** The question, revealed in paced stages: lead → teases → then & next → the question → message → card → choices. */
 function TheQuestion({ play, reduce, planFirst, onYes, onPlanFirst, onPlan }) {
   const inv = config.invitation
   const teases = (inv.teases ?? []).filter(Boolean)
@@ -81,7 +170,8 @@ function TheQuestion({ play, reduce, planFirst, onYes, onPlanFirst, onPlan }) {
   const step = reduce ? 0.12 : 1.1
   const leadAt = reduce ? 0 : 0.15
   const teaseAt = teases.map((_, i) => leadAt + step * (i + 1))
-  const questionAt = leadAt + step * (teases.length + 1)
+  const pairAt = leadAt + step * (teases.length + 1)
+  const questionAt = pairAt + (firstDate ? (reduce ? 0.12 : 1.5) : 0)
   const messageAt = questionAt + (reduce ? 0.12 : 1.0)
   const cardAt = messageAt + (reduce ? 0.12 : 0.5)
   const buttonsAt = cardAt + (reduce ? 0.12 : 0.6)
@@ -105,6 +195,8 @@ function TheQuestion({ play, reduce, planFirst, onYes, onPlanFirst, onPlan }) {
           {fill(line)}
         </motion.p>
       ))}
+
+      <FirstDatePair play={play} delay={pairAt} className="mt-9" />
 
       <h2
         id="invitation-title"
@@ -166,10 +258,17 @@ function TheQuestion({ play, reduce, planFirst, onYes, onPlanFirst, onPlan }) {
   )
 }
 
-/** After “yes”: the headline turns celebratory, then the next steps appear. */
+/** After “yes”: the headline turns celebratory, the empty frame gets its stamp, then the next steps appear. */
 function Celebration({ play, fresh, onPickDate, onReplay }) {
   const s = config.invitation.success
-  const t = fresh ? [0.2, 1.05, 1.5, 1.9] : [0.1, 0.45, 0.75, 1.0]
+  // heart & headline · message · then-&-next pair · kicker · buttons
+  const t = fresh
+    ? firstDate
+      ? [0.2, 1.05, 1.45, 2.85, 3.25]
+      : [0.2, 1.05, 1.05, 1.5, 1.9]
+    : firstDate
+      ? [0.1, 0.45, 0.6, 1.2, 1.4]
+      : [0.1, 0.45, 0.45, 0.75, 1.0]
   const reveal = (i) => ({ variants: stage, initial: 'hidden', animate: play ? 'show' : 'hidden', custom: t[i] })
 
   return (
@@ -196,10 +295,11 @@ function Celebration({ play, fresh, onPickDate, onReplay }) {
       <motion.p {...reveal(1)} className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink">
         {fill(s.message)}
       </motion.p>
-      <motion.p {...reveal(2)} className="mx-auto mt-10 max-w-2xl text-balance font-hand text-[clamp(1.9rem,4.6vw,2.6rem)] leading-tight text-burgundy">
+      <FirstDatePair play={play} delay={t[2]} stamped className="mt-9" />
+      <motion.p {...reveal(3)} className="mx-auto mt-10 max-w-2xl text-balance font-hand text-[clamp(1.9rem,4.6vw,2.6rem)] leading-tight text-burgundy">
         {fill(proposal.upcoming ? s.kicker : s.kickerNoDate)}
       </motion.p>
-      <motion.div {...reveal(3)} className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+      <motion.div {...reveal(4)} className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Button size="lg" onClick={onPickDate} icon={<CalendarHeart className="h-5 w-5" />}>
           {fill(s.pickDateLabel)}
         </Button>

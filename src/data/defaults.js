@@ -156,6 +156,7 @@ With love,
       { id: 'venue', kind: 'classified', label: 'Venue', value: 'Classified until we decide what works' },
     ],
     stamp: ['Second attempt.', 'Extra effort.', 'Same girl. ❤️'],
+    exhibit: null, // optional photo clipped into the case file — see romanticConfig.js
     inspectLabel: 'Inspect my outfit options',
     continueLabel: 'Let the investigation continue',
     boardTitle: 'A few gentle suggestions from the committee',
@@ -174,6 +175,7 @@ With love,
   invitation: {
     lead: 'So… I have one more question for you.',
     teases: ['Work stole our first plan…', 'But can I try again?'],
+    firstDate: null, // optional "then → next" photo pair — see romanticConfig.js
     question: '{her}, will you go on a date with me on {proposedDay}? ❤️',
     questionNoDate: '{her}, will you go on a date with me? ❤️',
     message: 'Just you and me, good food, good conversations, a little fun, and a memory that’s ours.',

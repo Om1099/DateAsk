@@ -11,8 +11,10 @@ import { TiltCard } from '../components/TiltCard'
 import { useFinePointer } from '../hooks/useMediaQuery'
 import { EASE_SILK, cn, withBase } from '../lib/utils'
 
-const ROTATIONS = [-5, 3.5, -2.5, 4.5, -3.5, 2.5]
-const STACKING = ['z-10', 'z-[13]', 'z-[11]', 'z-[14]', 'z-[12]', 'z-[15]']
+// neighbours always lean opposite ways — in one column, in rows of two and in rows of three.
+// The 5th card is the centre of the 3×3 grid: it sits almost straight and on top of its neighbours.
+const ROTATIONS = [-5, 3.5, -2.5, 4.5, -1.5, 2.5, -4, 3, -2]
+const STACKING = ['z-10', 'z-[13]', 'z-[11]', 'z-[14]', 'z-20', 'z-[15]', 'z-[16]', 'z-[18]', 'z-[17]']
 const TAPES = ['bg-blush-deep/75', 'bg-champagne/95', 'bg-dusty-rose/40']
 
 function PolaroidCard({ photo, index, onOpen }) {
@@ -44,6 +46,7 @@ function PolaroidCard({ photo, index, onOpen }) {
           <Photo
             src={photo.src}
             alt={photo.alt}
+            position={photo.focus}
             sizes="(min-width: 1024px) 340px, (min-width: 640px) 48vw, 82vw"
             className="aspect-square w-full rounded-[11px] sm:aspect-[4/5]"
           />
@@ -79,7 +82,14 @@ function Lightbox({ photos, index, onClose, onStep }) {
   }, [open, onStep])
 
   return (
-    <Modal open={open} onClose={onClose} label={photo?.caption ?? 'Photo'} layout="center" className="w-full max-w-[min(92vw,28rem)]">
+    // the frame shrinks on short screens so the whole photo, its caption and the arrows always fit
+    <Modal
+      open={open}
+      onClose={onClose}
+      label={photo?.caption ?? 'Photo'}
+      layout="center"
+      className="w-full max-w-[min(92vw,28rem,calc((100svh_-_16rem)*0.75))]"
+    >
       {photo && (
         <>
           <AnimatePresence mode="wait" initial={false}>
@@ -91,7 +101,8 @@ function Lightbox({ photos, index, onClose, onStep }) {
               exit={{ opacity: 0, rotate: 2, scale: 0.97 }}
               transition={{ duration: 0.35, ease: EASE_SILK }}
             >
-              <Photo src={photo.src} alt={photo.alt} sizes="92vw" eager className="aspect-[4/5] w-full rounded-[13px]" />
+              {/* the whole photo, uncropped — a soft blur of it fills the rest of the frame */}
+              <Photo src={photo.src} alt={photo.alt} sizes="92vw" eager fit="contain" className="aspect-[3/4] w-full rounded-[13px]" />
               <figcaption className="mt-4 text-center">
                 {photo.mood && <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-burgundy">{photo.mood}</p>}
                 <p className="mt-1 font-hand text-[1.75rem] leading-tight text-ink">{photo.caption}</p>
@@ -120,7 +131,7 @@ function Lightbox({ photos, index, onClose, onStep }) {
   )
 }
 
-/** C · Our little world — a mood board of overlapping polaroids (placeholders, not memories). */
+/** C · Our little world — the two of you, as a scatter of overlapping polaroids. */
 export function MemoryGallery() {
   const ref = useRef(null)
   const fine = useFinePointer()

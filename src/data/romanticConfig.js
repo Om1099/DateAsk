@@ -13,9 +13,12 @@
  *  • Blank out any text ('') and the wording from defaults.js is used instead.
  */
 
-// Placeholder photos from Unsplash. Swap any `src` for your own picture later:
-// a full URL, or a file in /public/photos written as '/photos/our-photo.jpg'.
-const unsplash = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=80`
+/*
+ * 📷 Photos live in public/photos and are written here as '/photos/name.jpeg'.
+ *    The names must match the files exactly — upper/lower case included (the live site is case-sensitive).
+ *    `focus` is where each crop centres ('50% 20%' = middle, near the top) so faces stay in frame;
+ *    the full, uncropped photo is shown when she opens it.
+ */
 
 export const romanticConfig = {
   // ── Who this is for ────────────────────────────────────────────────────
@@ -47,7 +50,7 @@ export const romanticConfig = {
   timeMode: 'to_be_decided', // ✏️ 'to_be_decided' · 'set' shows `time`
   time: '', // ✏️ e.g. '7:30 pm' — only used when timeMode is 'set'
 
-  photoMode: 'romantic placeholders', // the gallery uses mood photos until you add your own
+  photoMode: 'our own photos', // notes for future edits — the gallery shows the photos listed below
   audioPath: '/audio/voice-note.mp3', // ✏️ see public/audio/README.md
   signatureLine: 'Every moment with you is my new favourite memory.', // ✏️ shown in the footer
 
@@ -91,51 +94,80 @@ export const romanticConfig = {
     annotation: 'Made with a little extra love ♡', // ✏️ the handwritten note
   },
 
-  // ── C · Our little world (mood-board placeholders — not photos of you two) ─
+  // ── C · Our little world — the two of you ──────────────────────────────
   gallery: {
-    eyebrow: 'our little world',
+    eyebrow: 'us, so far',
     title: 'Our little *world*',
-    subtitle: 'Not our photos (yet) — just a little mood board of moments I’d love to share with you.',
+    subtitle: 'A few of my favourite frames of us — and all the proof I need that we deserve many more.',
     backgroundWord: 'little world',
     hintPointer: 'hover to tilt · click to look closer',
     hintTouch: 'tap a photo to look closer',
-    // ✏️ Swap `src` for your own photos any time (4–6 works best).
+    // ✏️ Your couple photos, in the order they're shown: one column on phones, rows of three on a laptop.
+    //    The order tells a little story — playful → festive → the hug at the heart (5th, centre of the grid)
+    //    → everyday & tender → your best-smiles photo as the finale. Edit the words freely.
     photos: [
       {
-        src: unsplash('1445116572660-236099ec97a0'),
-        alt: 'A sunny café table by the window with coffee and a little plant',
-        mood: 'coffee & conversation',
-        caption: 'A little coffee, a little conversation.',
+        src: '/photos/c5.jpeg',
+        focus: '50% 65%',
+        alt: 'A sunny selfie: {myName} grinning while {herName} pouts at the camera',
+        mood: 'the famous pout',
+        caption: 'That pout wins every argument. 😙',
       },
       {
-        src: unsplash('1507525428034-b723cf961d3e'),
-        alt: 'A quiet beach glowing in soft evening light',
-        mood: 'a sunset walk',
-        caption: 'Somewhere we can forget the time.',
+        src: '/photos/c4.jpeg',
+        focus: '50% 50%',
+        alt: '{herName} striking a pose, one hand in her hair, while {myName} laughs beside her at a garba night',
+        mood: 'garba night',
+        caption: 'You posed. I couldn’t stop smiling at you.',
       },
       {
-        src: unsplash('1455582916367-25f75bfc6710'),
-        alt: 'A single soft pink rose',
-        mood: 'flowers & a little note',
-        caption: 'Flowers? For you? Obviously.',
+        src: '/photos/C1.jpeg',
+        focus: '50% 20%',
+        alt: '{myName} and {herName} under red party lights, with a lamp behind his head that looks just like a crown',
+        mood: 'party mode',
+        caption: 'Royalty, apparently. 👑',
       },
       {
-        src: unsplash('1414235077428-338989a2e8c0'),
-        alt: 'A plated dinner with wine glasses under warm candlelight',
-        mood: 'dinner under warm lights',
-        caption: 'One of those evenings we won’t want to end.',
+        src: '/photos/c3.jpeg',
+        focus: '50% 55%',
+        alt: 'A soft, blurry mirror photo of {herName} in a black lehenga, with {myName} just behind her',
+        mood: 'slightly blurry',
+        caption: 'A little blurry, still a favourite. ♡',
       },
       {
-        src: unsplash('1509042239860-f550ce710b93'),
-        alt: 'Two cappuccinos side by side on a café table',
-        mood: 'two cups, one table',
-        caption: 'Just us, and nowhere else to be.',
+        src: '/photos/c7.jpeg',
+        focus: '50% 15%',
+        alt: '{herName} smiling at the camera while {myName} hugs her close',
+        mood: 'warm hugs',
+        caption: 'You feel like home. ♡',
       },
       {
-        src: unsplash('1518199266791-5375a83190b7'),
-        alt: 'Warm, heart-shaped bokeh lights on a dreamy evening',
-        mood: 'a dreamy evening',
-        caption: 'A little time away from everything else.',
+        src: '/photos/c9.jpeg',
+        focus: '50% 22%',
+        alt: 'A selfie of {myName} and {herName} at a table, captioned “8,162nd Day of my life”',
+        mood: 'just another day',
+        caption: 'Ordinary days are better with you.',
+      },
+      {
+        src: '/photos/c6.jpeg',
+        focus: '50% 55%',
+        alt: '{myName} leaning his head against {herName}’s as she laughs, by a railing under the city lights',
+        mood: 'city lights',
+        caption: 'Making you laugh is my favourite hobby.',
+      },
+      {
+        src: '/photos/c8.jpeg',
+        focus: '50% 20%',
+        alt: '{herName}, eyes closed and smiling, cheek to cheek with {myName}',
+        mood: 'cheek to cheek',
+        caption: 'My favourite place: right next to you.',
+      },
+      {
+        src: '/photos/C2.jpeg',
+        focus: '35% 50%',
+        alt: '{myName} in an olive kurta and {herName} in a white dupatta, both smiling in front of glowing blue lights',
+        mood: 'all dressed up',
+        caption: 'You, me, and our best smiles.',
       },
     ],
   },
@@ -233,6 +265,16 @@ Your boring, non-talkative, overthinking boyfriend,
       { id: 'venue', kind: 'classified', label: 'Venue', value: 'Classified until we decide what works' },
     ],
     stamp: ['Second attempt.', 'Extra effort.', 'Same girl. ❤️'], // ✏️ the little rubber stamp, one line each
+    // ✏️ "Exhibit A": her photo, clipped into the case file once it has been reviewed. Delete this block to hide it.
+    exhibit: {
+      photo: '/photos/s1.jpeg',
+      focus: '50% 40%',
+      alt: '{herName} smiling over her shoulder in a festive outfit, with warm lights glowing behind her',
+      tag: 'Exhibit A',
+      label: 'Evidence on file',
+      title: 'Every outfit on record: approved.',
+      finding: 'Finding: you look stunning in everything. ♡',
+    },
     inspectLabel: 'Inspect my outfit options',
     continueLabel: 'Let the investigation continue',
     boardTitle: 'A few gentle suggestions from the committee',
@@ -253,6 +295,21 @@ Your boring, non-talkative, overthinking boyfriend,
   invitation: {
     lead: 'So… I have one more question for you.',
     teases: ['Work stole our first plan…', 'But can I try again?'],
+    // ✏️ "then → next": your first-date photo beside an empty frame saved for the new date.
+    //    After her yes, the empty frame gets an "approved" stamp. Delete this block to hide it.
+    firstDate: {
+      photo: '/photos/d1.jpeg',
+      focus: '50% 56%',
+      alt: '{herName} in the car with a big bouquet of roses in her arms, the photo stamped “Monday 20:53”',
+      label: 'then',
+      caption: 'Our very first date ♡',
+      nextLabel: 'next',
+      reservedLabel: 'saved for',
+      reservedNoDate: 'our next date', // used once {proposedDate} has passed
+      nextCaption: 'Our next one?',
+      nextCaptionYes: 'Our next one ♡',
+      stamp: 'Approved ♡',
+    },
     question: '{her}, will you go on a date with me on {proposedDay}? ❤️', // ✏️
     questionNoDate: '{her}, will you go on a date with me? ❤️', // used if proposedDate is empty or has passed
     message:

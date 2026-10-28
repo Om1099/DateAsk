@@ -17,7 +17,7 @@ npm run preview   # serve the production build locally
 
 1. **Opening.** "Jinudi, I owe you a date… ❤️", the Pune and Hyderabad rain check, "But your boring boy hasn't forgotten.", then **Open your second little surprise ♡**.
 2. **Round two, my favourite girl.** A paper memo (To / From / Re) with her nicknames. The note acknowledges the cancelled plan briefly and moves on to the new ask.
-3. **Our little world.** Polaroids with tilt and a lightbox. These are mood-board placeholders, labelled "not our photos (yet)".
+3. **Our little world.** Nine of your couple photos as overlapping polaroids with tilt, each cropped around your faces. Tapping one opens the whole, uncropped photo in a lightbox.
 4. **The heart tree.** An original SVG. The trunk draws itself, branches follow, and heart leaves bloom into a heart-shaped canopy.
 5. **The letter.** A wax-sealed envelope that opens and can be closed and reopened. It's signed "Mari Bakudi ♡".
 6. **The voice note.** A custom player around a real `<audio>` element. It never autoplays.
@@ -28,8 +28,8 @@ npm run preview   # serve the production build locally
    - overthinking: *back in business*
    - venue: *classified*
 
-   Then the "Second attempt. Extra effort. Same girl. ❤️" stamp and an optional outfit mood board. Picking an outfit never counts as a yes.
-8. **The big question.** "So… I have one more question for you." → "Work stole our first plan…" → "But can I try again?" → **"Jinudi, will you go on a date with me on 5th November? ❤️"**, with an invitation card (Thursday, 5 November 2026 · venue · time · dress code). Then **YES! Let's make it happen 💗** ("ROUND TWO APPROVED. ♡") or **Tell me the plan first 👀** ("Fair enough, Madam…" plus an optional planner where she can suggest a different day).
+   Then **Exhibit A**: her solo photo, paper-clipped into the file ("Every outfit on record: approved. Finding: you look stunning in everything. ♡"). Next comes the "Second attempt. Extra effort. Same girl. ❤️" stamp and an optional outfit mood board. Picking an outfit never counts as a yes.
+8. **The big question.** "So… I have one more question for you." → "Work stole our first plan…" → "But can I try again?" → **then → next**: your first-date photo beside an empty frame "saved for 5 November" → **"Jinudi, will you go on a date with me on 5th November? ❤️"**. After a yes, the empty frame gets an "Approved ♡" stamp. The ask also has an invitation card (Thursday, 5 November 2026 · venue · time · dress code). Then **YES! Let's make it happen 💗** ("ROUND TWO APPROVED. ♡") or **Tell me the plan first 👀** ("Fair enough, Madam…" plus an optional planner where she can suggest a different day).
 
 ## Make it yours (`src/data/romanticConfig.js`)
 
@@ -68,12 +68,19 @@ Dates are always written the British/Indian way, whatever language her phone use
 
 ### Photos
 
-The gallery uses **Unsplash placeholders** chosen as mood-setting scenes (coffee, a sunset walk, flowers, dinner under warm lights, two cups, a dreamy evening). They are never presented as photos of you two. To use your own:
+Your photos live in `public/photos/` and are listed in `romanticConfig.js` as `'/photos/name.jpeg'`:
 
-1. Put pictures in `public/photos/` (portrait-ish photos crop best).
-2. Change each `src` in `gallery.photos` to `'/photos/your-file.jpg'`, then update `caption`, `mood` and `alt`. Also update `gallery.subtitle`, which says "Not our photos (yet)".
+| Where | Config | Photo |
+| --- | --- | --- |
+| Our little world (gallery) | `gallery.photos` | `c1`–`c9`, the couple photos, in the order shown |
+| Wardrobe case file, "Exhibit A" | `wardrobe.exhibit` | `s1`, her solo photo |
+| The big question, "then → next" | `invitation.firstDate` | `d1`, your first date |
 
-A photo that can't load shows a soft "photo coming soon ♡" card instead of a broken image.
+- **File names must match exactly, including upper/lower case.** Windows doesn't mind, but the live site does: `C1.jpeg` and `c1.jpeg` are different files there. All names are lowercase now.
+- `focus` sets where each crop centres (`'50% 20%'` = middle, near the top), so faces stay in frame. The full photo is shown when she opens it.
+- Each photo has a `caption`, a small `mood` label and `alt` text (read aloud by screen readers). Edit any of them freely.
+- To hide Exhibit A or the then → next pair, delete that block. The rest of the page carries on as before.
+- A photo that can't load shows a soft "photo coming soon ♡" card instead of a broken image.
 
 ### Voice note
 
@@ -87,7 +94,7 @@ Save your recording as **`public/audio/voice-note.mp3`** (more tips in `public/a
 - **With `rememberChoices: true`** they are kept in her browser's `localStorage` (keys `little-date:answer`, `little-date:outfit`, `little-date:plan`), and a **Clear saved answers** link appears in the footer. Switching back to `false` forgets anything stored earlier.
 - In the planner she can **Edit** or **Reset my choices**, and suggest another day. **Copy our plan** puts a short summary on her clipboard, and she decides whether to send it.
 - **Replay my little surprise** glides back to the top and asks again from the start. Her date plan is kept.
-- Fonts are bundled with the site, so there are no Google Fonts requests. The only outside requests are the Unsplash placeholders, until you replace them. The page also asks search engines not to index it (`noindex`).
+- Fonts and photos are bundled with the site, so the page makes no outside requests at all. It also asks search engines not to index it (`noindex`).
 
 ## Deploy & share privately
 
@@ -95,13 +102,14 @@ Save your recording as **`public/audio/voice-note.mp3`** (more tips in `public/a
 
 - **Netlify Drop (quickest):** drag the `dist/` folder onto <https://app.netlify.com/drop> to get a link in seconds.
 - **Vercel / Netlify / Cloudflare Pages:** import the GitHub repo. These work with a **private** repo. Use build command `npm run build` and output folder `dist`.
-- **GitHub Pages:** works too, but on free plans the repository must be **public**, which means the letter and both your names are readable on GitHub.
+- **GitHub Pages:** works too, but on free plans the repository must be **public**, which means the letter, both your names and your photos can be seen on GitHub by anyone.
 
 To keep it between the two of you:
 
 - Use an unguessable site name (e.g. `jinudi-7f3k.netlify.app`) and send the link directly. Don't post it anywhere.
 - For real access control, put a password in front. Cloudflare Pages + Cloudflare Access has a free tier; Netlify and Vercel offer password protection on paid plans.
-- If the GitHub repo is public, make it private (Settings → General → Danger Zone → Change visibility). The commit history already contains the names and the letter.
+- If the GitHub repo is public, make it private (Settings → General → Danger Zone → Change visibility). The commit history already contains the names and the letter. Photos pushed to a public repo stay in its history even after they're deleted.
+- Whatever the host, the photos on the live site can be opened by anyone who has the link.
 
 ## Project structure
 

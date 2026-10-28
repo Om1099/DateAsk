@@ -1,6 +1,6 @@
 import { defaults } from './defaults'
 import { romanticConfig } from './romanticConfig'
-import { formatDayMonth, formatFullDate, formatOrdinalDayMonth, isUpcoming, parseISODate } from '../lib/dates'
+import { formatDateParts, formatDayMonth, formatFullDate, formatOrdinalDayMonth, isUpcoming, parseISODate } from '../lib/dates'
 
 const isBlank = (v) =>
   v == null || (typeof v === 'string' && v.trim() === '') || (Array.isArray(v) && v.length === 0)
@@ -59,6 +59,7 @@ export const proposal = {
   date: proposedUpcoming ? formatDayMonth(config.proposedDate) : '', // "5 November"
   day: proposedUpcoming ? formatOrdinalDayMonth(config.proposedDate) : '', // "5th November"
   full: proposedUpcoming ? formatFullDate(config.proposedDate) : '', // "Thursday, 5 November 2026"
+  parts: proposedUpcoming ? formatDateParts(config.proposedDate) : null, // { day: '5', month: 'November', weekday: 'Thursday' }
   label: proposedUpcoming
     ? firstFilled(config.proposedDateLabel) || `${formatOrdinalDayMonth(config.proposedDate)} ${config.proposedDate.slice(0, 4)}`
     : '',
