@@ -34,27 +34,20 @@ const CAN_FADE = (() => {
 })()
 
 const NOOP = () => {}
-const MusicContext = createContext({
-  enabled: false,
-  status: 'off',
-  started: false,
-  muted: false,
-  time: 0,
-  duration: 0,
-  start: NOOP,
-  toggle: NOOP,
-  toggleMute: NOOP,
-  cue: NOOP,
-  hold: NOOP,
-  release: NOOP,
-})
+// Two contexts: the actions never change, so sections that only call them (the opening, the big question,
+// the voice note) don't re-render while the playback time ticks; only the little player reads the state.
+const ActionsContext = createContext({ enabled: false, start: NOOP, toggle: NOOP, toggleMute: NOOP, cue: NOOP, hold: NOOP, release: NOOP })
+const StateContext = createContext({ status: 'off', started: false, muted: false, time: 0, duration: 0 })
 
 /** The page's music: `start` (from a click), `toggle`, `toggleMute`, `cue(name)`, `hold(reason)` / `release(reason)`. */
-export const useMusic = () => useContext(MusicContext)
+export const useMusic = () => useContext(ActionsContext)
+const useMusicState = () => useContext(StateContext)
 
 export function MusicProvider({ children }) {
   const audioRef = useRef(null)
   const [status, setStatus] = useState(SRC ? 'idle' : 'off') // off · idle · loading · playing · paused · error
+  const statusRef = useRef(status)
+  statusRef.current = status
   const [started, setStarted] = useState(false)
   const [muted, setMuted] = useState(false)
   const [time, setTime] = useState(0)
@@ -114,12 +107,12 @@ export function MusicProvider({ children }) {
   )
 
   const start = useCallback(() => {
-    if (!SRC || status === 'error') return
+    if (!SRC || statusRef.current === 'error') return
     setStarted(true)
     if (wantsMusic.current && !audioRef.current?.paused) return
     wantsMusic.current = true
     sync(2400)
-  }, [sync, status])
+  }, [sync])
 
   const toggle = useCallback(() => {
     if (!SRC) return
@@ -180,14 +173,15 @@ export function MusicProvider({ children }) {
     return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [hold, release])
 
-  const value = useMemo(
-    () => ({ enabled: Boolean(SRC), status, started, muted, time, duration, start, toggle, toggleMute, cue, hold, release }),
-    [status, started, muted, time, duration, start, toggle, toggleMute, cue, hold, release],
+  const actions = useMemo(
+    () => ({ enabled: Boolean(SRC), start, toggle, toggleMute, cue, hold, release }),
+    [start, toggle, toggleMute, cue, hold, release],
   )
+  const state = useMemo(() => ({ status, started, muted, time, duration }), [status, started, muted, time, duration])
 
   return (
-    <MusicContext.Provider value={value}>
-      {children}
+    <ActionsContext.Provider value={actions}>
+      <StateContext.Provider value={state}>{children}</StateContext.Provider>
       {SRC && (
         <audio
           ref={audioRef}
@@ -206,7 +200,7 @@ export function MusicProvider({ children }) {
           }}
         />
       )}
-    </MusicContext.Provider>
+    </ActionsContext.Provider>
   )
 }
 
@@ -229,7 +223,7 @@ const RING = 2 * Math.PI * 23
  * progress ring, the title and time on wider screens, and mute.
  */
 export function MusicControl() {
-  const m = useMusic()
+  const m = { ...useMusic(), ...useMusicState() }
   const small = useIsSmallScreen()
   const [pastHero, setPastHero] = useState(false)
   const [showError, setShowError] = useState(false)
