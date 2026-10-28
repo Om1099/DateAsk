@@ -36,6 +36,9 @@
   --color-burgundy-soft: var(--burgundy-soft);
 }
 
+/* `short:` — phones held sideways and other short, wide screens */
+@custom-variant short (@media (max-height: 500px) and (orientation: landscape));
+
 @theme {
   --font-sans: 'Jost', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;

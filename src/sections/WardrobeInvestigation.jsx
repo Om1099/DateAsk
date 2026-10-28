@@ -241,7 +241,10 @@ function Exhibit({ exhibit, show, delay, reduce }) {
 function CaseFile({ chosen }) {
   const ref = useRef(null)
   const reduce = useReducedMotionPreference()
-  const started = useInView(ref, { once: true, amount: 0.4 })
+  // the review starts once the file's top passes 70% of the screen (a share-of-height trigger can miss a tall
+  // file on a short or zoomed-in screen); with reduced motion she simply sees the reviewed file
+  const inViewStart = useInView(ref, { once: true, margin: '0px 0px -30% 0px' })
+  const started = inViewStart || reduce
   const w = config.wardrobe
   const concluded = Boolean(chosen)
   const outfitLabel = chosen ? fill(chosen.label).replace(/\.$/, '') : ''

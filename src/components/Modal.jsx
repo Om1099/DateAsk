@@ -21,7 +21,8 @@ const PANEL_MOTION = {
 
 const BACKDROP = {
   sheet: 'items-end bg-ink/45 sm:items-center sm:p-6',
-  center: 'items-center bg-ink/70 p-5',
+  // the panel centres itself (my-auto) when it fits; when it doesn't, the backdrop scrolls instead of clipping it
+  center: 'items-start overflow-y-auto overscroll-contain bg-ink/70 p-5',
 }
 
 /** Accessible dialog: rendered in a portal, traps focus, closes on Escape or backdrop click, locks scroll. */
@@ -29,7 +30,7 @@ export function Modal({ open, ...props }) {
   return createPortal(<AnimatePresence>{open && <ModalPanel key="modal" {...props} />}</AnimatePresence>, document.body)
 }
 
-function ModalPanel({ onClose, labelledBy, label, layout = 'sheet', className, children }) {
+function ModalPanel({ onClose, labelledBy, label, describedBy, layout = 'sheet', className, children }) {
   const panelRef = useRef(null)
   useScrollLock(true)
   useFocusTrap(panelRef)
@@ -57,6 +58,7 @@ function ModalPanel({ onClose, labelledBy, label, layout = 'sheet', className, c
         aria-modal="true"
         aria-labelledby={labelledBy}
         aria-label={labelledBy ? undefined : label}
+        aria-describedby={describedBy}
         tabIndex={-1}
         className={cn('relative outline-none', className)}
         onClick={(e) => e.stopPropagation()}

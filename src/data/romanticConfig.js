@@ -118,11 +118,11 @@ export const romanticConfig = {
     hintTouch: 'tap a photo to look closer',
     // ✏️ Your couple photos, in the order they're shown: one column on phones, rows of three on a laptop.
     //    The order tells a little story — playful moments → the hug at the heart (5th, the centre of the grid)
-    //    → tender ones → your best-smiles photo as the finale; no two captions in a row say "favourite".
+    //    → tender ones → your best-smiles photo as the finale.
     photos: [
       {
         src: '/photos/c5.jpeg',
-        focus: '50% 65%',
+        focus: '50% 85%',
         alt: 'A sunny selfie: {myName} grinning while {herName} pouts at the camera',
         mood: 'the famous pout',
         caption: 'That pout wins every argument. 😙',
@@ -145,8 +145,8 @@ export const romanticConfig = {
         src: '/photos/c3.jpeg',
         focus: '50% 55%',
         alt: 'A soft, blurry mirror photo of {herName} in a black lehenga, with {myName} just behind her',
-        mood: 'slightly blurry',
-        caption: 'A little blurry, still a favourite. ♡',
+        mood: 'mirror selfie',
+        caption: 'The photo’s blurry. The feelings aren’t. ♡',
       },
       {
         src: '/photos/c7.jpeg',
@@ -174,7 +174,7 @@ export const romanticConfig = {
         focus: '50% 20%',
         alt: '{herName}, eyes closed and smiling, cheek to cheek with {myName}',
         mood: 'cheek to cheek',
-        caption: 'My favourite place: right next to you.',
+        caption: 'Best seat in the house: right next to you.',
       },
       {
         src: '/photos/C2.jpeg',
@@ -319,7 +319,7 @@ Your boring, non-talkative, overthinking boyfriend,
       caption: 'Our very first date ♡',
       nextLabel: 'next',
       reservedLabel: 'saved for',
-      reservedNoDate: 'our next date', // used once {proposedDate} has passed
+      reservedNoDate: 'the day we pick', // used when proposedDate is empty or has passed
       nextCaption: 'Our next one?',
       nextCaptionYes: 'Our next one ♡',
       stamp: 'Approved ♡',

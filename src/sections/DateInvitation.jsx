@@ -14,6 +14,7 @@ import { SplitText } from '../components/SplitText'
 import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
 import { celebrate } from '../lib/confetti'
 import { describePlan } from '../lib/plan'
+import { scrollToSection } from '../lib/scroll'
 import { EASE_SILK, cn, withBase } from '../lib/utils'
 
 const stage = {
@@ -49,7 +50,8 @@ function FirstDatePair({ play, delay = 0, stamped = false, className }) {
   const stampAt = delay + (reduce ? 0.2 : 1.15)
 
   return (
-    <div className={cn('relative mx-auto flex max-w-[26rem] items-center justify-center gap-1.5 sm:gap-4', className)}>
+    // items-stretch: both frames take the taller one's height, so they line up even when captions wrap differently
+    <div className={cn('relative mx-auto flex max-w-[26rem] items-stretch justify-center gap-1.5 sm:gap-4', className)}>
       <motion.figure {...placed(delay, -4)} className={FRAME}>
         <Photo src={withBase(fd.photo)} alt={fill(fd.alt)} position={fd.focus} className="aspect-[4/5] w-full rounded-[9px]" />
         <figcaption className="mt-2 text-center">
@@ -62,7 +64,7 @@ function FirstDatePair({ play, delay = 0, stamped = false, className }) {
         viewBox="0 0 48 26"
         fill="none"
         aria-hidden
-        className="w-9 shrink-0 text-rose-gold sm:w-12"
+        className="w-9 shrink-0 self-center text-rose-gold sm:w-12"
         initial={{ opacity: 0 }}
         animate={{ opacity: play ? 1 : 0 }}
         transition={{ duration: 0.6, delay: delay + 0.3 }}
@@ -262,6 +264,16 @@ function TheQuestion({ play, reduce, planFirst, onYes, onPlanFirst, onPlan }) {
 /** After “yes”: the headline turns celebratory, the empty frame gets its stamp, then the next steps appear. */
 function Celebration({ play, fresh, onPickDate, onReplay }) {
   const s = config.invitation.success
+  const headingRef = useRef(null)
+
+  // right after her yes: bring the celebration into view and move keyboard / screen-reader focus to it
+  useEffect(() => {
+    const h = headingRef.current
+    if (!fresh || !h) return
+    const r = h.getBoundingClientRect()
+    if (r.top < 80 || r.bottom > window.innerHeight) scrollToSection(h, { offset: -96 })
+    h.focus({ preventScroll: true })
+  }, [fresh])
   // heart & headline · message · then-&-next pair · kicker · buttons
   const t = fresh
     ? firstDate
@@ -289,7 +301,9 @@ function Celebration({ play, fresh, onPickDate, onReplay }) {
 
       <h2
         id="invitation-title"
-        className="mt-7 font-display text-[clamp(2.3rem,7vw,4.6rem)] font-medium leading-[1.06] tracking-[0.05em] text-burgundy"
+        ref={headingRef}
+        tabIndex={-1}
+        className="mt-7 font-display text-[clamp(2.3rem,7vw,4.6rem)] font-medium leading-[1.06] tracking-[0.05em] text-burgundy outline-none"
       >
         <SplitText text={fill(s.headline)} variant="pop" play={play} delay={t[0] + 0.2} stagger={0.035} />
       </h2>
@@ -342,7 +356,9 @@ function PlanSummary({ plan, onEdit }) {
 /** H · The big question. Nothing is preselected; both answers are genuinely welcome. */
 export function DateInvitation({ answer, onAnswer, plan, onPlanChange, onReplay }) {
   const ref = useRef(null)
-  const inView = useInView(ref, { once: true, amount: 0.3 })
+  // starts once the section's top passes the middle of the screen — a share-of-height trigger never fires
+  // on short screens (phones held sideways, zoomed-in laptops) now that the section is this tall
+  const inView = useInView(ref, { once: true, margin: '0px 0px -50% 0px' })
   const reduce = useReducedMotionPreference()
   const [plannerOpen, setPlannerOpen] = useState(false)
   const [hearts, setHearts] = useState(false)
@@ -386,11 +402,11 @@ export function DateInvitation({ answer, onAnswer, plan, onPlanChange, onReplay 
       <div className="relative w-full max-w-3xl">
         <AnimatePresence mode="wait" initial={false}>
           {answer === 'yes' ? (
-            <Celebration key="yes" play={inView || fresh} fresh={fresh} onPickDate={openPlanner} onReplay={onReplay} />
+            <Celebration key="yes" play={inView || fresh || reduce} fresh={fresh} onPickDate={openPlanner} onReplay={onReplay} />
           ) : (
             <TheQuestion
               key="ask"
-              play={inView}
+              play={inView || reduce}
               reduce={reduce}
               planFirst={answer === 'plan-first'}
               onYes={sayYes}

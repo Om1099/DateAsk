@@ -23,7 +23,7 @@ function PolaroidCard({ photo, index, onOpen }) {
     <motion.li
       className={cn(
         // one scattered column on phones, an overlapping 2- / 3-column collage on larger screens
-        'relative w-[82%] max-w-[21rem] hover:z-30 sm:-mx-1.5 sm:w-[calc(50%+12px)] sm:max-w-none lg:-mx-2 lg:w-[calc(33.333%+16px)]',
+        'relative w-[82%] max-w-[21rem] hover:z-30 has-[:focus-visible]:z-30 sm:-mx-1.5 sm:w-[calc(50%+12px)] sm:max-w-none lg:-mx-2 lg:w-[calc(33.333%+16px)]',
         STACKING[index % STACKING.length],
         index > 0 && 'mt-6 sm:mt-0',
         index % 2 === 0 ? '-translate-x-[6%] sm:translate-x-0' : 'translate-x-[6%] sm:translate-x-0',
@@ -40,7 +40,8 @@ function PolaroidCard({ photo, index, onOpen }) {
           type="button"
           onClick={() => onOpen(index)}
           whileTap={{ scale: 0.98 }}
-          aria-label={`${photo.caption} — open a larger view`}
+          aria-label={`${photo.mood ? `${photo.mood}: ` : ''}${photo.caption} — open a larger view`}
+          aria-describedby={`photo-alt-${index}`}
           className="block w-full cursor-pointer rounded-[16px] bg-paper p-3 pb-4 text-center shadow-card transition-shadow duration-500 hover:shadow-lifted sm:p-3.5 sm:pb-5"
         >
           <Photo
@@ -57,6 +58,10 @@ function PolaroidCard({ photo, index, onOpen }) {
             {photo.caption}
           </span>
         </motion.button>
+        {/* the photo's description, read after the card's label by screen readers */}
+        <span id={`photo-alt-${index}`} hidden>
+          {photo.alt}
+        </span>
         <span
           aria-hidden
           className={cn('absolute -top-3 left-1/2 h-6 w-20 -translate-x-1/2 shadow-sm', TAPES[index % TAPES.length])}
@@ -70,6 +75,8 @@ function PolaroidCard({ photo, index, onOpen }) {
 function Lightbox({ photos, index, onClose, onStep }) {
   const open = index !== null
   const photo = open ? photos[index] : null
+  const [announce, setAnnounce] = useState('')
+  const shown = useRef(null)
 
   useEffect(() => {
     if (!open) return
@@ -81,48 +88,77 @@ function Lightbox({ photos, index, onClose, onStep }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onStep])
 
+  // stepping to another photo is announced to screen readers (opening one already reads its label)
+  useEffect(() => {
+    if (index === null) {
+      shown.current = null
+      setAnnounce('')
+      return
+    }
+    if (shown.current !== null && shown.current !== index) {
+      const p = photos[index]
+      setAnnounce(`Photo ${index + 1} of ${photos.length}: ${p.caption}. ${p.alt}`)
+    }
+    shown.current = index
+  }, [index, photos])
+
   return (
-    // the frame shrinks on short screens so the whole photo, its caption and the arrows always fit
+    // The frame shrinks on short screens (never below 15rem). Phones held sideways get the photo and its caption
+    // side by side, and if it still doesn't fit, the dialog scrolls rather than clipping the close button.
     <Modal
       open={open}
       onClose={onClose}
       label={photo?.caption ?? 'Photo'}
+      describedBy="lightbox-photo-desc"
       layout="center"
-      className="w-full max-w-[min(92vw,28rem,calc((100svh_-_16rem)*0.75))]"
+      className="my-auto w-full max-w-[min(92vw,28rem,max(15rem,calc((100svh_-_16rem)*0.75)))] short:w-auto short:max-w-[calc(100vw-2.5rem)]"
     >
       {photo && (
         <>
+          <span id="lightbox-photo-desc" hidden>
+            {photo.alt}
+          </span>
+          <p className="sr-only" aria-live="polite" aria-atomic="true">
+            {announce}
+          </p>
           <AnimatePresence mode="wait" initial={false}>
             <motion.figure
               key={index}
-              className="rounded-[20px] bg-paper p-3.5 pb-5 shadow-lifted"
+              className="rounded-[20px] bg-paper p-3.5 pb-5 shadow-lifted short:flex short:items-center short:gap-5 short:p-3 short:pr-5"
               initial={{ opacity: 0, rotate: -3, scale: 0.95 }}
               animate={{ opacity: 1, rotate: -1, scale: 1 }}
               exit={{ opacity: 0, rotate: 2, scale: 0.97 }}
               transition={{ duration: 0.35, ease: EASE_SILK }}
             >
               {/* the whole photo, uncropped — a soft blur of it fills the rest of the frame */}
-              <Photo src={photo.src} alt={photo.alt} sizes="92vw" eager fit="contain" className="aspect-[3/4] w-full rounded-[13px]" />
-              <figcaption className="mt-4 text-center">
+              <Photo
+                src={photo.src}
+                alt={photo.alt}
+                sizes="92vw"
+                eager
+                fit="contain"
+                className="aspect-[3/4] w-full rounded-[13px] short:h-[calc(100svh-8rem)] short:w-auto short:flex-none"
+              />
+              <figcaption className="mt-4 text-center short:mt-0 short:w-52">
                 {photo.mood && <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-burgundy">{photo.mood}</p>}
-                <p className="mt-1 font-hand text-[1.75rem] leading-tight text-ink">{photo.caption}</p>
+                <p className="mt-1 text-balance font-hand text-[1.75rem] leading-tight text-ink">{photo.caption}</p>
               </figcaption>
             </motion.figure>
           </AnimatePresence>
 
           <div className="mt-5 flex items-center justify-center gap-4">
-            <IconButton label="Previous photo" onClick={() => onStep(-1)}>
+            <IconButton label="Previous photo" onClick={() => onStep(-1)} className="focus-visible:outline-ivory">
               <ChevronLeft aria-hidden className="h-5 w-5" />
             </IconButton>
             <span className="min-w-12 text-center text-xs tabular-nums text-ivory">
               {index + 1} / {photos.length}
             </span>
-            <IconButton label="Next photo" onClick={() => onStep(1)}>
+            <IconButton label="Next photo" onClick={() => onStep(1)} className="focus-visible:outline-ivory">
               <ChevronRight aria-hidden className="h-5 w-5" />
             </IconButton>
           </div>
 
-          <IconButton label="Close photo" onClick={onClose} className="absolute -right-2 -top-3 sm:-right-5 sm:-top-5">
+          <IconButton label="Close photo" onClick={onClose} className="absolute -right-2 -top-3 focus-visible:outline-ivory sm:-right-5 sm:-top-5">
             <X aria-hidden className="h-5 w-5" />
           </IconButton>
         </>
