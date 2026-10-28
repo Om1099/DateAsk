@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useMotionValue, useTransform } from 'motion/react'
-import { Mic, Pause, Play } from 'lucide-react'
+import { Music2, Pause, Play, RotateCcw } from 'lucide-react'
 import { useReducedMotionPreference } from '../hooks/useReducedMotionPreference'
+import { claimPlayback, releasePlayback } from '../lib/playback'
 import { clamp, cn, formatTime, mulberry32 } from '../lib/utils'
 import { useMusic } from './BackgroundMusic'
 
 const BAR_COUNT = 46
 
-function makeBars(n) {
-  const rand = mulberry32(21)
+/** A decorative waveform; the seed gives every clip its own shape. */
+function makeBars(n, seed) {
+  const rand = mulberry32(seed)
   return Array.from({ length: n }, (_, i) => {
     const envelope = Math.sin((i / (n - 1)) * Math.PI) * 0.5 + 0.4
     return clamp(envelope * (0.5 + rand() * 0.75), 0.16, 1)
@@ -30,27 +32,47 @@ function Bars({ bars, active, className }) {
 }
 
 /**
- * Custom voice-note player wrapped around a native <audio> element.
- * If the audio file hasn't been added yet, it says so kindly and stays disabled —
- * it never pretends to play. Nothing ever autoplays.
+ * A little audio player around a native <audio> element — one per song card.
+ * Only one clip plays at a time (lib/playback), and the background music steps aside while one plays.
+ * `gain` (0–1) evens out how loud different clips are (browsers that ignore volume, like iPhones, play them as recorded).
+ * If the file is missing it says so kindly and stays disabled — it never pretends to play. Nothing ever autoplays.
  */
-export function VoiceNotePlayer({ src, title, missingMessage }) {
+export function ClipPlayer({ id, src, label, title, missingMessage, gain = 1, seed = 21, bare = false, onPlayingChange }) {
   const audioRef = useRef(null)
   const draggingRef = useRef(false)
   const reduce = useReducedMotionPreference()
   const [status, setStatus] = useState(src ? 'checking' : 'missing') // checking · ready · missing
   const [playing, setPlaying] = useState(false)
+  const [ended, setEnded] = useState(false)
   const [duration, setDuration] = useState(0)
   const [elapsed, setElapsed] = useState(0)
   const progress = useMotionValue(0)
-  const bars = useMemo(() => makeBars(BAR_COUNT), [])
+  const bars = useMemo(() => makeBars(BAR_COUNT, seed), [seed])
   const clipPath = useTransform(progress, (p) => `inset(0 ${(1 - p) * 100}% 0 0)`)
   const knobLeft = useTransform(progress, (p) => `${p * 100}%`)
   const ready = status === 'ready'
+  const name = label || 'this clip'
+  const holdKey = `clip:${id ?? name}`
 
   // the background music steps aside while she listens, and comes back afterwards
   const { hold: holdMusic, release: releaseMusic } = useMusic()
-  useEffect(() => () => releaseMusic('voice'), [releaseMusic])
+  useEffect(() => {
+    const a = audioRef.current
+    // if the player goes away mid-song (e.g. "Replay my little surprise"), let go of the music and the playback slot
+    return () => {
+      releaseMusic(holdKey)
+      if (a) releasePlayback(a)
+    }
+  }, [releaseMusic, holdKey])
+
+  useEffect(() => {
+    onPlayingChange?.(playing)
+  }, [playing, onPlayingChange])
+
+  // loudness matching, where the browser lets a page set the volume
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = clamp(Number(gain) || 1, 0, 1)
+  }, [gain])
 
   // Is the file really there? Hosts with SPA fallbacks answer missing files with HTML, not audio.
   useEffect(() => {
@@ -74,16 +96,16 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
   // Smooth progress while playing — a motion value, so no per-frame React renders.
   useEffect(() => {
     if (!playing) return
-    let id
+    let raf
     const tick = () => {
       const a = audioRef.current
       if (a && !draggingRef.current && Number.isFinite(a.duration) && a.duration > 0) {
         progress.set(a.currentTime / a.duration)
       }
-      id = requestAnimationFrame(tick)
+      raf = requestAnimationFrame(tick)
     }
-    id = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(id)
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
   }, [playing, progress])
 
   const toggle = async () => {
@@ -107,6 +129,7 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
     a.currentTime = t
     progress.set(t / a.duration)
     setElapsed(Math.floor(t))
+    setEnded(false)
   }
 
   const ratioFromEvent = (e) => {
@@ -139,16 +162,24 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
     }
   }
 
+  const stopped = () => {
+    setPlaying(false)
+    if (audioRef.current) releasePlayback(audioRef.current)
+    releaseMusic(holdKey)
+  }
+
   const buttonLabel = !ready
     ? status === 'checking'
-      ? 'Voice note loading'
-      : 'Voice note not added yet'
+      ? `${name} is loading`
+      : `${name} isn’t here yet`
     : playing
-      ? 'Pause voice note'
-      : 'Play voice note'
+      ? `Pause ${name}`
+      : ended
+        ? `Play ${name} again`
+        : `Play ${name}`
 
   return (
-    <div className="rounded-[26px] border border-white/80 bg-paper/90 p-4 shadow-soft sm:p-5">
+    <div className={cn(!bare && 'rounded-[26px] border border-white/80 bg-paper/90 p-4 shadow-soft sm:p-5')}>
       {src && (
         <audio
           ref={audioRef}
@@ -164,24 +195,22 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
             if (Number.isFinite(d)) setDuration(d)
           }}
           onTimeUpdate={(e) => setElapsed(Math.floor(e.currentTarget.currentTime))}
-          onPlay={() => {
+          onPlay={(e) => {
+            claimPlayback(e.currentTarget) // only one song at a time
             setPlaying(true)
-            holdMusic('voice')
+            setEnded(false)
+            holdMusic(holdKey)
           }}
-          onPause={() => {
-            setPlaying(false)
-            releaseMusic('voice')
-          }}
+          onPause={stopped}
           onEnded={(e) => {
-            setPlaying(false)
-            releaseMusic('voice')
+            stopped()
+            setEnded(true)
             e.currentTarget.currentTime = 0
             progress.set(0)
             setElapsed(0)
           }}
           onError={() => {
-            setPlaying(false)
-            releaseMusic('voice')
+            stopped()
             setStatus('missing')
           }}
         />
@@ -193,6 +222,7 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
           onClick={toggle}
           disabled={!ready}
           aria-label={buttonLabel}
+          title={buttonLabel}
           whileHover={ready ? { scale: 1.06 } : undefined}
           whileTap={ready ? { scale: 0.92 } : undefined}
           className={cn(
@@ -205,7 +235,7 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
           {playing && <span aria-hidden className="ping-soft absolute inset-0 rounded-full bg-dusty-rose/60" />}
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
-              key={playing ? 'pause' : 'play'}
+              key={playing ? 'pause' : ended ? 'replay' : 'play'}
               className="relative"
               initial={{ scale: 0.4, opacity: 0, rotate: -40 }}
               animate={{ scale: 1, opacity: 1, rotate: 0 }}
@@ -214,6 +244,8 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
             >
               {playing ? (
                 <Pause aria-hidden className="h-6 w-6" fill="currentColor" strokeWidth={0} />
+              ) : ended ? (
+                <RotateCcw aria-hidden className="h-5 w-5" strokeWidth={2.4} />
               ) : (
                 <Play aria-hidden className="ml-0.5 h-6 w-6" fill="currentColor" strokeWidth={0} />
               )}
@@ -222,16 +254,18 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
         </motion.button>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="flex min-w-0 items-center gap-2 font-display text-lg italic text-ink">
-              {playing && (
-                <span aria-hidden className="relative flex h-2 w-2 shrink-0">
-                  <span className="ping-soft absolute inline-flex h-full w-full rounded-full bg-burgundy/60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-burgundy" />
-                </span>
-              )}
-              <span className="truncate">{title}</span>
-            </p>
+          <div className={cn('flex items-baseline gap-3', title ? 'justify-between' : 'justify-end')}>
+            {title && (
+              <p className="flex min-w-0 items-center gap-2 font-display text-lg italic text-ink">
+                {playing && (
+                  <span aria-hidden className="relative flex h-2 w-2 shrink-0">
+                    <span className="ping-soft absolute inline-flex h-full w-full rounded-full bg-burgundy/60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-burgundy" />
+                  </span>
+                )}
+                <span className="truncate">{title}</span>
+              </p>
+            )}
             <span className="shrink-0 text-xs tabular-nums text-ink-soft">
               {ready ? `${formatTime(elapsed)} / ${formatTime(duration)}` : '--:--'}
             </span>
@@ -240,7 +274,7 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
           <div
             role="slider"
             tabIndex={ready ? 0 : -1}
-            aria-label="Voice note position"
+            aria-label={`${name} position`}
             aria-disabled={!ready}
             aria-valuemin={0}
             aria-valuemax={Math.round(duration)}
@@ -277,12 +311,12 @@ export function VoiceNotePlayer({ src, title, missingMessage }) {
             exit={{ opacity: 0 }}
             className="mt-4 flex items-start gap-2.5 rounded-2xl bg-blush/60 px-4 py-3 text-sm leading-relaxed text-ink"
           >
-            <Mic aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-burgundy" />
+            <Music2 aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-burgundy" />
             {missingMessage}
           </motion.p>
         )}
       </AnimatePresence>
-      {status === 'checking' && <p className="mt-3 text-xs text-ink-soft">Loading the voice note…</p>}
+      {status === 'checking' && <p className="mt-3 text-xs text-ink-soft">Loading…</p>}
     </div>
   )
 }

@@ -15,7 +15,7 @@ import { HeroSection } from './sections/HeroSection'
 import { IntroSection } from './sections/IntroSection'
 import { LoveLetter } from './sections/LoveLetter'
 import { MemoryGallery } from './sections/MemoryGallery'
-import { VoiceNoteSection } from './sections/VoiceNoteSection'
+import { SongMoments } from './sections/SongMoments'
 import { WardrobeInvestigation } from './sections/WardrobeInvestigation'
 
 export default function App() {
@@ -58,7 +58,7 @@ export default function App() {
           <BloomingTree />
           <Divider />
           <LoveLetter />
-          <VoiceNoteSection />
+          <SongMoments />
           <WardrobeInvestigation outfit={outfit} onOutfitChange={setOutfit} />
           <DateInvitation answer={answer} onAnswer={setAnswer} plan={plan} onPlanChange={setPlan} onReplay={replay} />
         </main>

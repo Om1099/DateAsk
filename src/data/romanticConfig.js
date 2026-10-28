@@ -51,11 +51,9 @@ export const romanticConfig = {
   time: '', // ✏️ e.g. '7:30 pm' — only used when timeMode is 'set'
 
   photoMode: 'our own photos', // notes for future edits — the gallery shows the photos listed below
-  audioPath: '/audio/voice-note.mp3', // ✏️ see public/audio/README.md
-
   // ── Background music ───────────────────────────────────────────────────
   // It never starts on its own: only when she taps "Open your second little surprise" or the little ♫ button.
-  // It pauses while the voice note plays, and when she switches to another tab.
+  // It pauses while one of the three song clips plays, and when she switches to another tab.
   music: {
     src: '/audio/medley_web_192k.mp3', // ✏️ '' turns the music off
     title: 'Our Song', // ✏️ shown on the little player
@@ -234,12 +232,44 @@ Your boring, non-talkative, overthinking boyfriend,
 {me} ♡`,
   },
 
-  // ── F · A little voice note ────────────────────────────────────────────
-  voiceNote: {
-    eyebrow: 'a little voice note',
-    caption: 'A little message, just for you.', // ✏️
-    title: '{her}, this one’s for you.',
-    missingMessage: 'The voice note hasn’t been added yet — your boring boy is still practising what to say ♡',
+  // ── F · Three little songs ─────────────────────────────────────────────
+  // ✏️ Each card plays its own clip from public/audio. File names must match exactly, upper/lower case included.
+  //    Only one song plays at a time, and the background music steps aside while a clip plays.
+  //    `gain` (0–1) evens out how loud the clips sound. Measured: Hangover −12.7, Itni Si Baat −7.8 and
+  //    Be Intehaan −5.2 LUFS, so these bring all three to about −14 LUFS (iPhones ignore it and play them as recorded).
+  songs: {
+    eyebrow: 'for your ears only',
+    title: 'Three little songs, a thousand *feelings* ♡', // ✏️ *word* = the italic accent
+    intro:
+      'Couldn’t fit everything I feel into words, so I picked three little pieces of music instead. Each one reminds me of you, in its own way. ♡',
+    numberLabel: 'Song',
+    missingMessage: 'This little clip is still on its way ♡',
+    clips: [
+      {
+        id: 'hangover',
+        title: 'Hangover',
+        src: '/audio/hangover.mp3',
+        gain: 0.86,
+        tag: '{her}, you have no idea what kind of hangover you leave me with ♡',
+        caption: 'One little clip for the girl who’s always on my mind.',
+      },
+      {
+        id: 'itni-si-baat',
+        title: 'Itni Si Baat',
+        src: '/audio/itniSiBaat.mp3',
+        gain: 0.49,
+        tag: 'Itni si baat hai, {her}… you mean a little more to me than words can say ♡',
+        caption: 'Some feelings are easier to feel than explain.',
+      },
+      {
+        id: 'be-intehaan',
+        title: 'Be Intehaan',
+        src: '/audio/beIntehan.mp3',
+        gain: 0.36,
+        tag: 'For you, {her} — in ways I could never fully put into words. ♡',
+        caption: 'A tiny piece of a feeling that has no finish line.',
+      },
+    ],
   },
 
   // ── G · The official date investigation: round two ─────────────────────

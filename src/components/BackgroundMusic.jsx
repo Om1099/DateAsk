@@ -3,13 +3,15 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Music, Play, Volume2, VolumeX } from 'lucide-react'
 import { config, fill } from '../data'
 import { useIsSmallScreen } from '../hooks/useMediaQuery'
+import { Equalizer } from './Equalizer'
+import { stopClips } from '../lib/playback'
 import { EASE_SILK, clamp, cn, formatTime, withBase } from '../lib/utils'
 
 /*
  * Background music for the whole page (config.music).
  *  · Never plays before she interacts: it starts from the opening button or the little ♫ control.
  *  · Fades in and out where the browser allows it. iPhones ignore volume changes, so there it simply starts/stops.
- *  · Steps aside while the voice note plays or the tab is hidden, and comes back if it was playing.
+ *  · Steps aside while one of the song clips plays or the tab is hidden, and comes back if it was playing.
  *  · Story cues glide the track to a chosen moment (the big question, her yes).
  * What she wants (on/off) and the temporary holds are kept apart, and one sync() drives the <audio> toward them.
  */
@@ -35,7 +37,7 @@ const CAN_FADE = (() => {
 
 const NOOP = () => {}
 // Two contexts: the actions never change, so sections that only call them (the opening, the big question,
-// the voice note) don't re-render while the playback time ticks; only the little player reads the state.
+// the song clips) don't re-render while the playback time ticks; only the little player reads the state.
 const ActionsContext = createContext({ enabled: false, start: NOOP, toggle: NOOP, toggleMute: NOOP, cue: NOOP, hold: NOOP, release: NOOP })
 const StateContext = createContext({ status: 'off', started: false, muted: false, time: 0, duration: 0 })
 
@@ -53,7 +55,7 @@ export function MusicProvider({ children }) {
   const [time, setTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const wantsMusic = useRef(false) // her choice: music on or off
-  const holds = useRef(new Set()) // why the music is stepping aside right now ('voice', 'hidden')
+  const holds = useRef(new Set()) // why the music is stepping aside right now ('clip:<id>', 'hidden')
   const token = useRef(0) // the newest transition wins; older ones stop where they are
   const fadeId = useRef(0)
 
@@ -118,8 +120,11 @@ export function MusicProvider({ children }) {
     if (!SRC) return
     setStarted(true)
     wantsMusic.current = !wantsMusic.current
-    // tapping play is her choice, so it also overrides a hold (e.g. she wants music over the voice note)
-    if (wantsMusic.current) holds.current.clear()
+    // tapping play is her choice: it overrides any hold, and stops a song clip so only one song plays at a time
+    if (wantsMusic.current) {
+      holds.current.clear()
+      stopClips()
+    }
     sync(wantsMusic.current ? 900 : 350)
   }, [sync])
 
@@ -201,17 +206,6 @@ export function MusicProvider({ children }) {
         />
       )}
     </ActionsContext.Provider>
-  )
-}
-
-/** Four little bars that dance while the music plays (still under reduced motion). */
-function Equalizer() {
-  return (
-    <span aria-hidden className="flex h-4 items-end gap-[3px]">
-      {[0.9, 0.55, 1, 0.7].map((h, i) => (
-        <span key={i} className="eq-bar block w-[3px] rounded-full bg-current" style={{ height: `${h * 100}%`, animationDelay: `${i * -0.27}s` }} />
-      ))}
-    </span>
   )
 }
 

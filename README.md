@@ -22,7 +22,7 @@ Preview it with `npm run dev`, not VS Code's "Go Live" button or by double-click
 3. **Our little world.** Nine of your couple photos as overlapping polaroids with tilt, each cropped around your faces. Tapping one opens the whole, uncropped photo in a lightbox.
 4. **The heart tree.** An original SVG. The trunk draws itself, branches follow, and heart leaves bloom into a heart-shaped canopy.
 5. **The letter.** A wax-sealed envelope that opens and can be closed and reopened. It's signed "Taro workaholic Premi ♡".
-6. **The voice note.** A custom player around a real `<audio>` element. It never autoplays.
+6. **Three little songs, a thousand feelings ♡.** Three song cards (Hangover, Itni Si Baat, Be Intehaan), each with its own clip, a handwritten dedication and its own player. Only one plays at a time, and nothing autoplays.
 7. **The official date investigation: Round Two 👗.** The case file shows:
    - previous date: struck through, *cancelled due to company work*
    - current proposal: 5 November, *awaiting Jinudi's decision*
@@ -46,8 +46,8 @@ Everything personal lives in **one file**, and fields marked ✏️ are meant to
 | `proposedDate`, `proposedDateLabel` | The new date (`'2026-11-05'`) and how it's written in running text ("5th November 2026"). Set `null` to leave it undecided. |
 | `dateMode` | `'editable'`: she can suggest another day · `'fixed'`: only the proposed date |
 | `venueMode`, `venue` · `timeMode`, `time` | `'surprise'` / `'to_be_decided'` keep them open; `'revealed'` / `'set'` show `venue` / `time` |
-| `audioPath`, `signatureLine`, `rememberChoices` | Voice note path, footer quote, persistence (see below) |
-| `hero`, `intro`, `gallery`, `tree`, `letter`, `voiceNote`, `wardrobe`, `invitation`, `datePlanner`, `footer` | All the wording, section by section |
+| `music`, `signatureLine`, `rememberChoices` | Background music (see below), footer quote, persistence (see below) |
+| `hero`, `intro`, `gallery`, `tree`, `letter`, `songs`, `wardrobe`, `invitation`, `datePlanner`, `footer` | All the wording, section by section |
 
 **Placeholders.** Write these inside any text and they're filled from the settings above. Change a date or a city once and every sentence follows.
 
@@ -84,9 +84,21 @@ Your photos live in `public/photos/` and are listed in `romanticConfig.js` as `'
 - To hide Exhibit A or the then → next pair, delete that block. The rest of the page carries on as before.
 - A photo that can't load shows a soft "photo coming soon ♡" card instead of a broken image.
 
-### Voice note
+### Three little songs
 
-Save your recording as **`public/audio/voice-note.mp3`** (more tips in `public/audio/README.md`). The player then shows the real duration and plays only when she presses play. Until the file exists, the button stays disabled and she sees: "The voice note hasn't been added yet — your boring boy is still practising what to say ♡".
+Each card plays its own clip from `public/audio/`. They're listed in `songs.clips` in `romanticConfig.js`:
+
+| Card | File | `gain` |
+| --- | --- | --- |
+| 01 · Hangover | `/audio/hangover.mp3` | 0.86 |
+| 02 · Itni Si Baat | `/audio/itniSiBaat.mp3` | 0.49 |
+| 03 · Be Intehaan | `/audio/beIntehan.mp3` | 0.36 |
+
+- **One song at a time.** Starting a clip pauses any other clip, and the background music steps aside until the clip pauses or ends. Turning the background music back on stops a playing clip.
+- **Each card has** a play/pause button (it becomes a replay ↺ when a clip ends), a waveform she can tap, drag or arrow-key through, and the time and duration.
+- **`gain` evens out how loud the clips sound.** The originals measure −12.7, −7.8 and −5.2 LUFS, and these values bring all three to about −14 LUFS. Browsers that ignore page volume, like iPhones, play them as recorded.
+- **File names must match exactly**, upper/lower case included. A missing or unplayable file shows "This little clip is still on its way ♡" on that card. The play button stays disabled, and the other cards keep working.
+- The tag (`tag`) and the line under it (`caption`) are yours to edit. `{her}` becomes "Jinudi".
 
 ### Background music
 
@@ -94,7 +106,7 @@ Save your recording as **`public/audio/voice-note.mp3`** (more tips in `public/a
 
 - **It never starts by itself.** It begins when she taps **Open your second little surprise ♡**, which has a small "♫ best with sound on" line under it. It also starts from the **♫ Play our song** button that appears bottom-right once she scrolls.
 - **The little player** has play/pause with a progress ring, the title and time on wider screens, and mute.
-- **It steps aside** while the voice note plays and when she switches tabs, then comes back.
+- **It steps aside** while one of the song clips plays and when she switches tabs, then comes back.
 - **Story cues:** while the music is playing:
   - it swells into the medley's third part (`cues.question`, 1:51) as the big question appears
   - it moves to the final part (`cues.yes`, 3:18) when she says yes
@@ -135,13 +147,13 @@ src/
   data/romanticConfig.js   ← edit me: names, dates, cities, words, photos, audio, options
   data/defaults.js         ← neutral fallback wording (used when a field is empty)
   data/index.js            ← merges the two and fills the {placeholders}
-  sections/                ← Hero, Intro, MemoryGallery, BloomingTree, LoveLetter, VoiceNote,
+  sections/                ← Hero, Intro, MemoryGallery, BloomingTree, LoveLetter, SongMoments,
                              WardrobeInvestigation, DateInvitation, Footer
-  components/              ← Heart3D, TiltCard, VoiceNotePlayer, DatePreferencePanel, OutfitArt, Modal, …
+  components/              ← Heart3D, TiltCard, ClipPlayer, BackgroundMusic, DatePreferencePanel, OutfitArt, Modal, …
   hooks/                   ← reduced-motion preference, persisted state, focus trap, scroll lock
   lib/                     ← dates, plan formatting, confetti, scrolling, storage, helpers
 public/
-  audio/                   ← voice-note.mp3 goes here (see the README inside)
+  audio/                   ← the three song clips + the background medley (see the README inside)
   photos/                  ← your own photos
 ```
 

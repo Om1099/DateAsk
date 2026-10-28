@@ -29,7 +29,6 @@ export const defaults = {
   timeMode: 'to_be_decided',
   time: '',
   photoMode: 'romantic placeholders',
-  audioPath: '/audio/voice-note.mp3',
   music: {
     src: '', // no background music unless romanticConfig.js sets a file
     title: 'Our Song',
@@ -133,11 +132,13 @@ With love,
 {me} ♡`,
   },
 
-  voiceNote: {
-    eyebrow: 'a little voice note',
-    caption: 'A little message, just for you.',
-    title: 'A little voice note for you',
-    missingMessage: 'The voice note hasn’t been added yet — check back a little later ♡',
+  songs: {
+    eyebrow: 'for your ears only',
+    title: 'A few little songs',
+    intro: '',
+    numberLabel: 'Song',
+    missingMessage: 'This little clip is still on its way ♡',
+    clips: [], // no clips → the section isn't shown
   },
 
   wardrobe: {
