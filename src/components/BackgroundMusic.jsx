@@ -119,8 +119,10 @@ export function MusicProvider({ children }) {
   const toggle = useCallback(() => {
     if (!SRC) return
     setStarted(true)
-    wantsMusic.current = !wantsMusic.current
-    // tapping play is her choice: it overrides any hold, and stops a song clip so only one song plays at a time
+    // the button acts on what she hears: music on and not stepping aside → pause; otherwise → play.
+    // Tapping play is her choice: it overrides any hold and stops a song clip, so only one song plays at a time.
+    const audible = wantsMusic.current && holds.current.size === 0
+    wantsMusic.current = !audible
     if (wantsMusic.current) {
       holds.current.clear()
       stopClips()
